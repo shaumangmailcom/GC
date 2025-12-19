@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contractor Draw Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass-card {
+      box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-10">
+    <header class="mb-8 text-center">
+      <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
+      <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">Submit Draw Requests with Confidence</h1>
+      <p class="text-slate-600 mt-3 max-w-3xl mx-auto">Select your project, add trade line items, upload an invoice, and see your estimated payment timeline in one modern, mobile-friendly interface.</p>
+    </header>
+
+    <main class="bg-white glass-card rounded-2xl p-6 md:p-8">
+      <form id="drawForm" class="space-y-8">
+        <section class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Project</label>
+            <select id="projectSelect" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required>
+              <option value="" disabled selected>Select a project</option>
+            </select>
+            <p class="text-xs text-slate-500">Active projects pull directly from your approved budget.</p>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Contractor Name</label>
+            <input id="contractorName" type="text" placeholder="ACME Builders" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required />
+          </div>
+        </section>
+
+        <section class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Date of Work</label>
+            <input id="workDate" type="text" placeholder="Select a date" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required />
+            <p id="bufferMessage" class="text-xs text-amber-600"></p>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Estimated Payment Date</label>
+            <div id="estimatedPayment" class="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-slate-800 bg-slate-50">Select a work date to calculate.</div>
+          </div>
+        </section>
+
+        <section class="border border-slate-100 rounded-2xl p-4 md:p-6 bg-slate-50/60">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Draw Details</p>
+              <h2 class="text-xl font-semibold text-slate-900">Trade Line Items</h2>
+            </div>
+            <button type="button" id="addLineItem" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-800 hover:bg-white transition">
+              <span class="text-lg">＋</span>
+              <span>Add Line Item</span>
+            </button>
+          </div>
+          <div id="lineItems" class="space-y-4"></div>
+          <div class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-slate-600">Total Draw Request</div>
+            <div id="totalAmount" class="text-2xl font-semibold text-slate-900">$0.00</div>
+          </div>
+        </section>
+
+        <section class="grid md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Invoice Upload</label>
+            <div id="dropzone" class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50/60 cursor-pointer">
+              <p class="text-slate-800 font-medium">Drag & drop your PDF/Image invoice</p>
+              <p class="text-xs text-slate-500 mt-2">Single file only. Converted to Base64 for secure submission.</p>
+              <input id="fileInput" type="file" accept="application/pdf,image/*" class="hidden" />
+              <div id="fileInfo" class="text-sm text-slate-700 mt-3"></div>
+            </div>
+          </div>
+          <div class="space-y-3 p-4 rounded-xl bg-slate-50/60 border border-slate-100">
+            <h3 class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
+            <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
+              <li>Project: —</li>
+              <li>Total Amount: $0.00</li>
+              <li>Invoice: Pending</li>
+            </ul>
+            <button type="submit" class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition">
+              Submit Draw Request
+            </button>
+            <p id="submitMessage" class="text-xs text-emerald-600"></p>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <section class="mt-10 bg-white glass-card rounded-2xl p-6 md:p-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status Tracking</p>
+          <h2 class="text-xl font-semibold text-slate-900">Track My Payments</h2>
+        </div>
+        <input id="searchInput" type="text" placeholder="Search by project, trade, or status" class="w-full md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50" />
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead>
+            <tr class="text-slate-500">
+              <th class="py-3 pr-4">Project</th>
+              <th class="py-3 pr-4">Trade</th>
+              <th class="py-3 pr-4">Amount</th>
+              <th class="py-3 pr-4">Status</th>
+              <th class="py-3 pr-4">Updated</th>
+            </tr>
+          </thead>
+          <tbody id="statusTable" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL';
+
+    const state = {
+      budgets: [],
+      statusRows: [
+        { project: 'Lakeside Villas', trade: 'Electrical', amount: 8200, status: 'Processing', updated: '2024-07-02' },
+        { project: 'Harbor Point', trade: 'Plumbing', amount: 5300, status: 'Paid', updated: '2024-06-28' },
+        { project: 'Lakeside Villas', trade: 'Painting', amount: 4100, status: 'In Review', updated: '2024-06-30' },
+        { project: 'Summit Ridge', trade: 'Framing', amount: 12900, status: 'Paid', updated: '2024-06-25' },
+      ],
+      invoiceBase64: null,
+      invoiceName: '',
+      lineItemCount: 0,
+    };
+
+    function formatCurrency(value) {
+      const number = Number(value) || 0;
+      return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+
+    function addDays(date, days) {
+      const copy = new Date(date);
+      copy.setDate(copy.getDate() + days);
+      return copy;
+    }
+
+    function nextThursday(date) {
+      const result = new Date(date);
+      const day = result.getDay();
+      const delta = (11 - day) % 7 || 7; // days until next Thursday
+      result.setDate(result.getDate() + delta);
+      return result;
+    }
+
+    async function fetchBudgets() {
+      try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        state.budgets = Array.isArray(data) ? data : data?.budgets || [];
+      } catch (error) {
+        state.budgets = [
+          { project: 'Lakeside Villas', trade: 'Plumbing', remaining: 12000 },
+          { project: 'Lakeside Villas', trade: 'Electrical', remaining: 9500 },
+          { project: 'Harbor Point', trade: 'Painting', remaining: 7000 },
+          { project: 'Harbor Point', trade: 'Plumbing', remaining: 8500 },
+          { project: 'Summit Ridge', trade: 'Framing', remaining: 15000 },
+        ];
+      }
+      populateProjects();
+      renderLineItems();
+    }
+
+    function populateProjects() {
+      const select = document.getElementById('projectSelect');
+      select.innerHTML = '<option value="" disabled selected>Select a project</option>';
+      const projects = [...new Set(state.budgets.map((b) => b.project))];
+      projects.forEach((project) => {
+        const option = document.createElement('option');
+        option.value = project;
+        option.textContent = project;
+        select.appendChild(option);
+      });
+    }
+
+    function getTradesForProject(project) {
+      return state.budgets.filter((b) => b.project === project);
+    }
+
+    function renderLineItems() {
+      const container = document.getElementById('lineItems');
+      container.innerHTML = '';
+      for (let i = 0; i < Math.max(state.lineItemCount, 1); i += 1) {
+        container.appendChild(createLineItemRow(i));
+      }
+    }
+
+    function createLineItemRow(index) {
+      const project = document.getElementById('projectSelect').value;
+      const trades = project ? getTradesForProject(project) : [];
+
+      const row = document.createElement('div');
+      row.className = 'grid md:grid-cols-12 gap-4 items-start bg-white rounded-xl border border-slate-100 p-4 shadow-sm';
+
+      const tradeCol = document.createElement('div');
+      tradeCol.className = 'md:col-span-5 space-y-2';
+      tradeCol.innerHTML = `
+        <label class="text-xs font-medium text-slate-600">Trade</label>
+        <select data-index="${index}" class="trade-select w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required ${project ? '' : 'disabled'}>
+          <option value="" disabled selected>${project ? 'Select trade' : 'Select project first'}</option>
+          ${trades
+            .map((t) => `<option value="${t.trade}">${t.trade}</option>`)
+            .join('')}
+        </select>`;
+
+      const balanceCol = document.createElement('div');
+      balanceCol.className = 'md:col-span-3 space-y-1';
+      balanceCol.innerHTML = `
+        <p class="text-xs font-medium text-slate-600">Remaining Balance</p>
+        <p class="remaining-label text-lg font-semibold text-emerald-700">—</p>`;
+
+      const amountCol = document.createElement('div');
+      amountCol.className = 'md:col-span-4 space-y-2';
+      amountCol.innerHTML = `
+        <label class="text-xs font-medium text-slate-600">Amount</label>
+        <div class="space-y-1">
+          <input data-index="${index}" type="number" min="0" step="0.01" placeholder="0.00" class="amount-input w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" disabled />
+          <p class="warning text-xs text-rose-600 hidden">Amount exceeds remaining balance.</p>
+        </div>`;
+
+      row.appendChild(tradeCol);
+      row.appendChild(balanceCol);
+      row.appendChild(amountCol);
+
+      return row;
+    }
+
+    function updateRemainingLabels(selectEl) {
+      const row = selectEl.closest('div.grid');
+      const project = document.getElementById('projectSelect').value;
+      const remainingLabel = row.querySelector('.remaining-label');
+      const amountInput = row.querySelector('.amount-input');
+      const trade = selectEl.value;
+      const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
+      remainingLabel.textContent = budget ? formatCurrency(budget.remaining) : '—';
+      if (budget) {
+        amountInput.removeAttribute('disabled');
+        amountInput.max = budget.remaining;
+      } else {
+        amountInput.setAttribute('disabled', 'true');
+        amountInput.value = '';
+      }
+      validateAmount(row, budget?.remaining || 0);
+    }
+
+    function validateAmount(row, max) {
+      const amountInput = row.querySelector('.amount-input');
+      const warning = row.querySelector('.warning');
+      const value = Number(amountInput.value);
+      if (value > max) {
+        amountInput.classList.add('border-rose-400', 'bg-rose-50');
+        warning.classList.remove('hidden');
+      } else {
+        amountInput.classList.remove('border-rose-400', 'bg-rose-50');
+        warning.classList.add('hidden');
+      }
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const rows = document.querySelectorAll('#lineItems .grid');
+      let total = 0;
+      rows.forEach((row) => {
+        const amount = Number(row.querySelector('.amount-input')?.value) || 0;
+        total += amount;
+      });
+      document.getElementById('totalAmount').textContent = formatCurrency(total);
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const project = document.getElementById('projectSelect').value || '—';
+      const total = document.getElementById('totalAmount').textContent;
+      const invoice = state.invoiceBase64 ? `Invoice ready (${state.invoiceName || 'uploaded file'})` : 'Pending';
+      const summaryList = document.getElementById('summaryList');
+      summaryList.innerHTML = `
+        <li>Project: ${project}</li>
+        <li>Total Amount: ${total}</li>
+        <li>Invoice: ${invoice}</li>`;
+    }
+
+    function updatePaymentEstimate(selectedDate) {
+      if (!selectedDate) {
+        document.getElementById('estimatedPayment').textContent = 'Select a work date to calculate.';
+        return;
+      }
+      const next = nextThursday(selectedDate);
+      const formatted = next.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+      document.getElementById('estimatedPayment').textContent = `Estimated Payment Date: ${formatted}`;
+    }
+
+    function setupFlatpickr() {
+      const today = new Date();
+      const minDate = addDays(today, 3);
+      document.getElementById('bufferMessage').textContent = `Earliest work date available is ${minDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}.`;
+
+      flatpickr('#workDate', {
+        minDate,
+        dateFormat: 'Y-m-d',
+        disableMobile: true,
+        onChange: (selectedDates) => {
+          const date = selectedDates[0];
+          updatePaymentEstimate(date);
+        },
+      });
+    }
+
+    function setupFileUpload() {
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('fileInput');
+      const fileInfo = document.getElementById('fileInfo');
+
+      const handleFiles = (files) => {
+        const file = files?.[0];
+        if (!file) return;
+        fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          const base64 = typeof dataUrl === 'string' ? dataUrl.split(',')[1] : '';
+          state.invoiceBase64 = base64;
+          state.invoiceName = file.name;
+          updateSummary();
+        };
+        reader.readAsDataURL(file);
+      };
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-slate-400');
+      });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-slate-400'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-slate-400');
+        handleFiles(e.dataTransfer.files);
+      });
+    }
+
+    function setupStatusTable() {
+      const tbody = document.getElementById('statusTable');
+      const render = (rows) => {
+        tbody.innerHTML = rows
+          .map(
+            (row) => `
+          <tr class="text-slate-800">
+            <td class="py-3 pr-4">${row.project}</td>
+            <td class="py-3 pr-4">${row.trade}</td>
+            <td class="py-3 pr-4">${formatCurrency(row.amount)}</td>
+            <td class="py-3 pr-4">
+              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700' : row.status === 'Processing' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}">${row.status}</span>
+            </td>
+            <td class="py-3 pr-4 text-slate-500">${row.updated}</td>
+          </tr>`
+          )
+          .join('');
+      };
+      render(state.statusRows);
+
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = state.statusRows.filter((row) =>
+          [row.project, row.trade, row.status].some((value) => value.toLowerCase().includes(term))
+        );
+        render(filtered);
+      });
+    }
+
+    function setupLineItemEvents() {
+      document.getElementById('addLineItem').addEventListener('click', () => {
+        state.lineItemCount += 1;
+        renderLineItems();
+      });
+
+      document.getElementById('projectSelect').addEventListener('change', () => {
+        renderLineItems();
+        updateSummary();
+      });
+
+      document.getElementById('lineItems').addEventListener('change', (e) => {
+        if (e.target.classList.contains('trade-select')) {
+          updateRemainingLabels(e.target);
+        }
+      });
+
+      document.getElementById('lineItems').addEventListener('input', (e) => {
+        if (e.target.classList.contains('amount-input')) {
+          const row = e.target.closest('.grid');
+          const tradeSelect = row.querySelector('.trade-select');
+          const project = document.getElementById('projectSelect').value;
+          const budget = state.budgets.find((b) => b.project === project && b.trade === tradeSelect.value);
+          validateAmount(row, budget?.remaining || 0);
+        }
+      });
+    }
+
+    function serializeLineItems() {
+      const rows = document.querySelectorAll('#lineItems .grid');
+      const items = [];
+      rows.forEach((row) => {
+        const trade = row.querySelector('.trade-select')?.value;
+        const amount = Number(row.querySelector('.amount-input')?.value) || 0;
+        if (trade && amount > 0) {
+          items.push({ trade, amount });
+        }
+      });
+      return items;
+    }
+
+    async function submitForm(event) {
+      event.preventDefault();
+      const project = document.getElementById('projectSelect').value;
+      const contractorName = document.getElementById('contractorName').value.trim();
+      const workDate = document.getElementById('workDate').value;
+      const rows = document.querySelectorAll('#lineItems .grid');
+      const lineItems = [];
+      let validationError = '';
+
+      rows.forEach((row) => {
+        const tradeSelect = row.querySelector('.trade-select');
+        const amountInput = row.querySelector('.amount-input');
+        const warning = row.querySelector('.warning');
+        const trade = tradeSelect?.value;
+        const amount = Number(amountInput?.value) || 0;
+        const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
+        const max = budget?.remaining || 0;
+
+        if (trade) {
+          if (amount <= 0) {
+            warning.textContent = 'Enter an amount greater than 0.';
+            warning.classList.remove('hidden');
+            amountInput.classList.add('border-rose-400', 'bg-rose-50');
+            validationError = validationError || 'Please enter amounts greater than 0 for all trades.';
+          } else if (amount > max) {
+            warning.textContent = 'Amount exceeds remaining balance.';
+            warning.classList.remove('hidden');
+            amountInput.classList.add('border-rose-400', 'bg-rose-50');
+            validationError = validationError || 'One or more line items exceed the remaining balance.';
+          } else {
+            warning.classList.add('hidden');
+            amountInput.classList.remove('border-rose-400', 'bg-rose-50');
+            lineItems.push({ trade, amount });
+          }
+        }
+      });
+
+      const totalAmount = lineItems.reduce((sum, item) => sum + item.amount, 0);
+
+      if (!project || !contractorName || !workDate || !lineItems.length) {
+        const baseMessage = 'Please complete all required fields and add at least one valid line item.';
+        document.getElementById('submitMessage').textContent = validationError ? `${baseMessage} ${validationError}` : baseMessage;
+        document.getElementById('submitMessage').classList.remove('text-emerald-600');
+        document.getElementById('submitMessage').classList.add('text-rose-600');
+        return;
+      }
+
+      const payload = {
+        Project: project,
+        ContractorName: contractorName,
+        WorkDate: workDate,
+        EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
+        TotalAmount: totalAmount,
+        InvoiceFile: state.invoiceBase64,
+        InvoiceFileName: state.invoiceName,
+        LineItems: lineItems,
+      };
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error('Submission failed');
+        document.getElementById('submitMessage').textContent = 'Draw request submitted successfully.';
+        document.getElementById('submitMessage').classList.remove('text-rose-600');
+        document.getElementById('submitMessage').classList.add('text-emerald-600');
+      } catch (error) {
+        document.getElementById('submitMessage').textContent = 'There was an issue submitting your request. Please try again.';
+        document.getElementById('submitMessage').classList.remove('text-emerald-600');
+        document.getElementById('submitMessage').classList.add('text-rose-600');
+      }
+    }
+
+    function init() {
+      fetchBudgets();
+      setupFlatpickr();
+      setupFileUpload();
+      setupStatusTable();
+      setupLineItemEvents();
+      updateSummary();
+      document.getElementById('drawForm').addEventListener('submit', submitForm);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
