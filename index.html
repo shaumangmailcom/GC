@@ -13,10 +13,29 @@
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+  <div id="pinModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure Access</p>
+      <h2 class="text-2xl font-semibold text-slate-900 mt-2">Enter Contractor PIN</h2>
+      <p class="text-sm text-slate-600 mt-2">Use your 4-digit PIN from the project roster so we can match your contractor profile automatically.</p>
+      <form id="pinForm" class="mt-5 space-y-4">
+        <div class="space-y-2">
+          <label for="pinInput" class="block text-sm font-medium text-slate-700">4-digit PIN</label>
+          <input id="pinInput" type="text" inputmode="numeric" pattern="\\d{4}" maxlength="4" required placeholder="1234" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50 tracking-[0.3em] text-center text-lg" />
+          <p id="pinError" class="text-xs text-rose-600 hidden">That PIN was not recognized. Please try again.</p>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="submit" class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition" id="pinSubmit">
+            Continue
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div class="max-w-6xl mx-auto px-4 py-10">
     <header class="mb-8 text-center">
       <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
-      <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">Submit Draw Requests with Confidence</h1>
+      <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">Draw Request</h1>
       <p class="text-slate-600 mt-3 max-w-3xl mx-auto">Select your project, add trade line items, upload an invoice, and see your estimated payment timeline in one modern, mobile-friendly interface.</p>
     </header>
 
@@ -32,7 +51,8 @@
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Contractor Name</label>
-            <input id="contractorName" type="text" placeholder="ACME Builders" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required />
+            <input id="contractorName" type="text" placeholder="Auto-filled after PIN" class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50 bg-slate-50" readonly required />
+            <p class="text-xs text-slate-500">We’ll fill this in after verifying your PIN.</p>
           </div>
         </section>
 
@@ -54,10 +74,7 @@
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Draw Details</p>
               <h2 class="text-xl font-semibold text-slate-900">Trade Line Items</h2>
             </div>
-            <button type="button" id="addLineItem" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-800 hover:bg-white transition">
-              <span class="text-lg">＋</span>
-              <span>Add Line Item</span>
-            </button>
+            <p class="text-sm text-slate-600">Each draw is limited to a single trade.</p>
           </div>
           <div id="lineItems" class="space-y-4"></div>
           <div class="mt-6 flex items-center justify-between">
@@ -131,8 +148,76 @@
       ],
       invoiceBase64: null,
       invoiceName: '',
-      lineItemCount: 0,
+      lineItemCount: 1,
+      contractor: null,
     };
+
+    async function verifyContractor(pin) {
+      try {
+        const response = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);
+        if (!response.ok) throw new Error('Failed to fetch contractor');
+        const data = await response.json();
+        const contractor = data?.contractor || data?.Contractor || data;
+        if (contractor?.name) return contractor;
+      } catch (error) {
+        // fallback to mock data if Apps Script is not available
+        const fallback = [
+          { pin: '1234', name: 'ACME Builders' },
+          { pin: '4321', name: 'Harbor Contractors' },
+          { pin: '2468', name: 'Summit Ridge Services' },
+        ];
+        return fallback.find((c) => c.pin === pin) || null;
+      }
+      return null;
+    }
+
+    function setContractor(name) {
+      state.contractor = { name };
+      const contractorInput = document.getElementById('contractorName');
+      contractorInput.value = name;
+      contractorInput.classList.remove('bg-slate-50');
+      updateSummary();
+    }
+
+    function hidePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    function setupPinModal() {
+      const pinForm = document.getElementById('pinForm');
+      const pinInput = document.getElementById('pinInput');
+      const pinError = document.getElementById('pinError');
+      const submitButton = document.getElementById('pinSubmit');
+
+      pinInput.focus();
+
+      pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = pinInput.value.trim();
+        if (!/^\d{4}$/.test(pin)) {
+          pinError.textContent = 'Please enter a 4-digit PIN.';
+          pinError.classList.remove('hidden');
+          return;
+        }
+
+        pinError.classList.add('hidden');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Verifying...';
+
+        const contractor = await verifyContractor(pin);
+
+        if (contractor?.name) {
+          setContractor(contractor.name);
+          hidePinModal();
+        } else {
+          pinError.textContent = 'That PIN was not recognized. Please try again.';
+          pinError.classList.remove('hidden');
+        }
+
+        submitButton.disabled = false;
+        submitButton.textContent = 'Continue';
+      });
+    }
 
     function formatCurrency(value) {
       const number = Number(value) || 0;
@@ -283,8 +368,10 @@
       const project = document.getElementById('projectSelect').value || '—';
       const total = document.getElementById('totalAmount').textContent;
       const invoice = state.invoiceBase64 ? `Invoice ready (${state.invoiceName || 'uploaded file'})` : 'Pending';
+      const contractorName = state.contractor?.name || '—';
       const summaryList = document.getElementById('summaryList');
       summaryList.innerHTML = `
+        <li>Contractor: ${contractorName}</li>
         <li>Project: ${project}</li>
         <li>Total Amount: ${total}</li>
         <li>Invoice: ${invoice}</li>`;
@@ -307,7 +394,7 @@
 
       flatpickr('#workDate', {
         minDate,
-        dateFormat: 'Y-m-d',
+        dateFormat: 'm/d/Y',
         disableMobile: true,
         onChange: (selectedDates) => {
           const date = selectedDates[0];
@@ -381,11 +468,6 @@
     }
 
     function setupLineItemEvents() {
-      document.getElementById('addLineItem').addEventListener('click', () => {
-        state.lineItemCount += 1;
-        renderLineItems();
-      });
-
       document.getElementById('projectSelect').addEventListener('change', () => {
         renderLineItems();
         updateSummary();
@@ -424,7 +506,7 @@
     async function submitForm(event) {
       event.preventDefault();
       const project = document.getElementById('projectSelect').value;
-      const contractorName = document.getElementById('contractorName').value.trim();
+      const contractorName = state.contractor?.name || document.getElementById('contractorName').value.trim();
       const workDate = document.getElementById('workDate').value;
       const rows = document.querySelectorAll('#lineItems .grid');
       const lineItems = [];
@@ -459,6 +541,13 @@
       });
 
       const totalAmount = lineItems.reduce((sum, item) => sum + item.amount, 0);
+
+      if (!state.contractor?.name) {
+        document.getElementById('submitMessage').textContent = 'Please verify your contractor PIN before submitting.';
+        document.getElementById('submitMessage').classList.remove('text-emerald-600');
+        document.getElementById('submitMessage').classList.add('text-rose-600');
+        return;
+      }
 
       if (!project || !contractorName || !workDate || !lineItems.length) {
         const baseMessage = 'Please complete all required fields and add at least one valid line item.';
@@ -502,6 +591,7 @@
       setupFileUpload();
       setupStatusTable();
       setupLineItemEvents();
+      setupPinModal();
       updateSummary();
       document.getElementById('drawForm').addEventListener('submit', submitForm);
     }
