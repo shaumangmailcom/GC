@@ -652,22 +652,31 @@
         LineItems: lineItems,
       };
 
-      try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) throw new Error('Submission failed');
+     try {
+  // Avoid CORS preflight by sending as text/plain and using no-cors
+  await fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+  });
 
-        msg.textContent = 'Draw request submitted successfully.';
-        msg.classList.remove('text-rose-600');
-        msg.classList.add('text-emerald-600');
-      } catch (error) {
-        msg.textContent = 'There was an issue submitting your request. Please try again.';
-        msg.classList.remove('text-emerald-600');
-        msg.classList.add('text-rose-600');
-      }
+  // With no-cors, we cannot read the response. If the request was sent, treat as success.
+  msg.textContent = 'Draw request submitted successfully.';
+  msg.classList.remove('text-rose-600');
+  msg.classList.add('text-emerald-600');
+
+  // Optional: reset form UI (comment out if you don’t want it)
+  // document.getElementById('drawForm').reset();
+  // state.invoiceBase64 = null; state.invoiceName = '';
+  // renderLineItems(); updateTotals(); updateSummary();
+
+} catch (error) {
+  msg.textContent = 'There was an issue submitting your request. Please try again.';
+  msg.classList.remove('text-emerald-600');
+  msg.classList.add('text-rose-600');
+}
+
     }
 
     function init() {
