@@ -7,11 +7,10 @@
   <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .glass-card {
-      box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
-    }
+    .glass-card { box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12); }
   </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
   <!-- PIN MODAL -->
   <div id="pinModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
@@ -52,11 +51,16 @@
   <div class="max-w-6xl mx-auto px-4 py-10">
     <header class="mb-8 text-center">
       <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
-      <!-- Headline is just "Draw Request" -->
-      <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">Draw Request</h1>
+
+      <!-- Headline change: show contractor name (low/soft) -->
+      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">
+        — <span class="font-normal text-slate-500">Contractor</span>
+      </h1>
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mt-2">Draw Request</p>
+
+      <!-- Shortened subtext -->
       <p class="text-slate-600 mt-3 max-w-3xl mx-auto">
-        Select your project, add trade line items, upload an invoice, and see your estimated payment timeline in one modern,
-        mobile-friendly interface.
+        Select your project, add a trade line item, upload an invoice, and see your estimated payment timeline.
       </p>
     </header>
 
@@ -139,6 +143,7 @@
               <div id="fileInfo" class="text-sm text-slate-700 mt-3"></div>
             </div>
           </div>
+
           <div class="space-y-3 p-4 rounded-xl bg-slate-50/60 border border-slate-100">
             <h3 class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
             <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
@@ -147,6 +152,7 @@
               <li>Total Amount: $0.00</li>
               <li>Invoice: Pending</li>
             </ul>
+
             <button
               type="submit"
               class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition"
@@ -172,6 +178,7 @@
           class="w-full md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
         />
       </div>
+
       <div class="overflow-x-auto">
         <table class="min-w-full text-left text-sm">
           <thead>
@@ -191,7 +198,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL';
+    // ✅ Your live Apps Script Web App URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSNQtTXZyNzv7ZcUTMCt96Via1Q-Wh1IHlTuWKijjAtNK5z_ajPIJL01YPml3TbUX8BQ/exec';
 
     const state = {
       budgets: [],
@@ -203,13 +211,12 @@
       ],
       invoiceBase64: null,
       invoiceName: '',
-      lineItemCount: 1,
       contractor: null,
     };
 
     async function verifyContractor(pin) {
       try {
-        const response = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);;
+        const response = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);
         if (!response.ok) throw new Error('Failed to fetch contractor');
         const data = await response.json();
         const contractor = data?.contractor || data?.Contractor || data;
@@ -228,9 +235,16 @@
 
     function setContractor(name) {
       state.contractor = { name };
+
+      // form field
       const contractorInput = document.getElementById('contractorName');
       contractorInput.value = name;
       contractorInput.classList.remove('bg-slate-50');
+
+      // headline
+      const headerEl = document.getElementById('headerContractorName');
+      headerEl.textContent = name;
+
       updateSummary();
     }
 
@@ -298,7 +312,8 @@
         const response = await fetch(SCRIPT_URL);
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
-        state.budgets = Array.isArray(data) ? data : data?.budgets || [];
+        const budgets = Array.isArray(data) ? data : data?.budgets || [];
+        state.budgets = budgets;
       } catch (error) {
         state.budgets = [
           { project: 'Lakeside Villas', trade: 'Plumbing', remaining: 12000 },
@@ -331,8 +346,7 @@
     function renderLineItems() {
       const container = document.getElementById('lineItems');
       container.innerHTML = '';
-      // one row only – one trade per draw
-      container.appendChild(createLineItemRow(0));
+      container.appendChild(createLineItemRow(0)); // one row only
     }
 
     function createLineItemRow(index) {
@@ -380,7 +394,9 @@
       const amountInput = row.querySelector('.amount-input');
       const trade = selectEl.value;
       const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
+
       remainingLabel.textContent = budget ? formatCurrency(budget.remaining) : '—';
+
       if (budget) {
         amountInput.removeAttribute('disabled');
         amountInput.max = budget.remaining;
@@ -388,6 +404,7 @@
         amountInput.setAttribute('disabled', 'true');
         amountInput.value = '';
       }
+
       validateAmount(row, budget?.remaining || 0);
     }
 
@@ -395,6 +412,7 @@
       const amountInput = row.querySelector('.amount-input');
       const warning = row.querySelector('.warning');
       const value = Number(amountInput.value);
+
       if (value > max) {
         amountInput.classList.add('border-rose-400', 'bg-rose-50');
         warning.classList.remove('hidden');
@@ -402,6 +420,7 @@
         amountInput.classList.remove('border-rose-400', 'bg-rose-50');
         warning.classList.add('hidden');
       }
+
       updateTotals();
     }
 
@@ -421,6 +440,7 @@
       const total = document.getElementById('totalAmount').textContent;
       const invoice = state.invoiceBase64 ? `Invoice ready (${state.invoiceName || 'uploaded file'})` : 'Pending';
       const contractorName = state.contractor?.name || '—';
+
       const summaryList = document.getElementById('summaryList');
       summaryList.innerHTML = `
         <li>Contractor: ${contractorName}</li>
@@ -442,7 +462,8 @@
     function setupFlatpickr() {
       const today = new Date();
       const minDate = addDays(today, 3);
-      document.getElementById('bufferMessage').textContent = `Earliest work date available is ${minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.`;
+      document.getElementById('bufferMessage').textContent =
+        `Earliest work date available is ${minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.`;
 
       flatpickr('#workDate', {
         minDate,
@@ -463,7 +484,9 @@
       const handleFiles = (files) => {
         const file = files?.[0];
         if (!file) return;
+
         fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+
         const reader = new FileReader();
         reader.onload = () => {
           const dataUrl = reader.result;
@@ -492,6 +515,7 @@
 
     function setupStatusTable() {
       const tbody = document.getElementById('statusTable');
+
       const render = (rows) => {
         tbody.innerHTML = rows
           .map(
@@ -514,6 +538,7 @@
           )
           .join('');
       };
+
       render(state.statusRows);
 
       document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -550,10 +575,12 @@
 
     async function submitForm(event) {
       event.preventDefault();
+
       const project = document.getElementById('projectSelect').value;
       const contractorName = state.contractor?.name || document.getElementById('contractorName').value.trim();
       const workDate = document.getElementById('workDate').value;
       const rows = document.querySelectorAll('#lineItems .grid');
+
       const lineItems = [];
       let validationError = '';
 
@@ -561,6 +588,7 @@
         const tradeSelect = row.querySelector('.trade-select');
         const amountInput = row.querySelector('.amount-input');
         const warning = row.querySelector('.warning');
+
         const trade = tradeSelect?.value;
         const amount = Number(amountInput?.value) || 0;
         const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
@@ -571,12 +599,12 @@
             warning.textContent = 'Enter an amount greater than 0.';
             warning.classList.remove('hidden');
             amountInput.classList.add('border-rose-400', 'bg-rose-50');
-            validationError = validationError || 'Please enter amounts greater than 0 for all trades.';
+            validationError = validationError || 'Please enter an amount greater than 0.';
           } else if (amount > max) {
             warning.textContent = 'Amount exceeds remaining balance.';
             warning.classList.remove('hidden');
             amountInput.classList.add('border-rose-400', 'bg-rose-50');
-            validationError = validationError || 'One or more line items exceed the remaining balance.';
+            validationError = validationError || 'Amount exceeds remaining balance.';
           } else {
             warning.classList.add('hidden');
             amountInput.classList.remove('border-rose-400', 'bg-rose-50');
@@ -585,28 +613,31 @@
         }
       });
 
-      // Enforce only one trade per draw (safety, even though UI has one row)
+      // Safety: enforce only one trade per draw.
       if (lineItems.length > 1) {
-        document.getElementById('submitMessage').textContent = 'Each draw must include only one trade.';
-        document.getElementById('submitMessage').classList.remove('text-emerald-600');
-        document.getElementById('submitMessage').classList.add('text-rose-600');
+        const msg = document.getElementById('submitMessage');
+        msg.textContent = 'Each draw must include only one trade.';
+        msg.classList.remove('text-emerald-600');
+        msg.classList.add('text-rose-600');
         return;
       }
 
       const totalAmount = lineItems.reduce((sum, item) => sum + item.amount, 0);
 
+      const msg = document.getElementById('submitMessage');
+
       if (!state.contractor?.name) {
-        document.getElementById('submitMessage').textContent = 'Please verify your contractor PIN before submitting.';
-        document.getElementById('submitMessage').classList.remove('text-emerald-600');
-        document.getElementById('submitMessage').classList.add('text-rose-600');
+        msg.textContent = 'Please verify your contractor PIN before submitting.';
+        msg.classList.remove('text-emerald-600');
+        msg.classList.add('text-rose-600');
         return;
       }
 
       if (!project || !contractorName || !workDate || !lineItems.length) {
-        const baseMessage = 'Please complete all required fields and add at least one valid line item.';
-        document.getElementById('submitMessage').textContent = validationError ? `${baseMessage} ${validationError}` : baseMessage;
-        document.getElementById('submitMessage').classList.remove('text-emerald-600');
-        document.getElementById('submitMessage').classList.add('text-rose-600');
+        const baseMessage = 'Please complete all required fields and add one valid line item.';
+        msg.textContent = validationError ? `${baseMessage} ${validationError}` : baseMessage;
+        msg.classList.remove('text-emerald-600');
+        msg.classList.add('text-rose-600');
         return;
       }
 
@@ -628,13 +659,14 @@
           body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error('Submission failed');
-        document.getElementById('submitMessage').textContent = 'Draw request submitted successfully.';
-        document.getElementById('submitMessage').classList.remove('text-rose-600');
-        document.getElementById('submitMessage').classList.add('text-emerald-600');
+
+        msg.textContent = 'Draw request submitted successfully.';
+        msg.classList.remove('text-rose-600');
+        msg.classList.add('text-emerald-600');
       } catch (error) {
-        document.getElementById('submitMessage').textContent = 'There was an issue submitting your request. Please try again.';
-        document.getElementById('submitMessage').classList.remove('text-emerald-600');
-        document.getElementById('submitMessage').classList.add('text-rose-600');
+        msg.textContent = 'There was an issue submitting your request. Please try again.';
+        msg.classList.remove('text-emerald-600');
+        msg.classList.add('text-rose-600');
       }
     }
 
@@ -653,4 +685,3 @@
   </script>
 </body>
 </html>
-
