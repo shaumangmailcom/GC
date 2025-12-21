@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contractor Draw Portal</title>
+
   <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     .glass-card { box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12); }
   </style>
@@ -18,8 +20,9 @@
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure Access</p>
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Enter Contractor PIN</h2>
       <p class="text-sm text-slate-600 mt-2">
-        Use your 4-digit PIN from the project roster so we can match your contractor profile automatically.
+        Enter your 4-digit PIN so we can show only the projects assigned to you.
       </p>
+
       <form id="pinForm" class="mt-5 space-y-4">
         <div class="space-y-2">
           <label for="pinInput" class="block text-sm font-medium text-slate-700">4-digit PIN</label>
@@ -35,10 +38,11 @@
           />
           <p id="pinError" class="text-xs text-rose-600 hidden">That PIN was not recognized. Please try again.</p>
         </div>
+
         <div class="flex justify-end gap-3">
           <button
             type="submit"
-            class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition"
+            class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition disabled:opacity-60"
             id="pinSubmit"
           >
             Continue
@@ -48,47 +52,53 @@
     </div>
   </div>
 
+  <!-- SUBMIT CONFIRM MODAL -->
+  <div id="submitModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Submitted</p>
+      <h2 class="text-2xl font-semibold text-slate-900 mt-2" id="submitModalTitle">Request sent</h2>
+      <p class="text-sm text-slate-600 mt-2" id="submitModalBody">
+        Your draw request was sent. Please check “Track My Payments” for the latest status.
+      </p>
+      <div class="flex justify-end mt-6">
+        <button
+          id="submitModalOk"
+          class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="max-w-6xl mx-auto px-4 py-10">
     <header class="mb-8 text-center">
       <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
 
-      <!-- Headline change: show contractor name (low/soft) -->
-      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">
-        — <span class="font-normal text-slate-500">Contractor</span>
-      </h1>
+      <!-- Contractor name shown once -->
+      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">—</h1>
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mt-2">Draw Request</p>
 
-      <!-- Shortened subtext -->
       <p class="text-slate-600 mt-3 max-w-3xl mx-auto">
-        Select your project, add a trade line item, upload an invoice, and see your estimated payment timeline.
+        Select your project, choose one trade, upload an invoice, and submit.
       </p>
     </header>
 
     <main class="bg-white glass-card rounded-2xl p-6 md:p-8">
       <form id="drawForm" class="space-y-8">
-        <section class="grid md:grid-cols-2 gap-6">
+        <!-- Project only -->
+        <section class="grid md:grid-cols-1 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Project</label>
             <select
               id="projectSelect"
               class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
               required
+              disabled
             >
-              <option value="" disabled selected>Select a project</option>
+              <option value="" disabled selected>Verify PIN first</option>
             </select>
-            <p class="text-xs text-slate-500">Active projects pull directly from your approved budget.</p>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Contractor Name</label>
-            <input
-              id="contractorName"
-              type="text"
-              placeholder="Auto-filled after PIN"
-              class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50 bg-slate-50"
-              readonly
-              required
-            />
-            <p class="text-xs text-slate-500">We’ll fill this in after verifying your PIN.</p>
+            <p class="text-xs text-slate-500">You will only see projects assigned to you.</p>
           </div>
         </section>
 
@@ -104,6 +114,7 @@
             />
             <p id="bufferMessage" class="text-xs text-amber-600"></p>
           </div>
+
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Estimated Payment Date</label>
             <div
@@ -119,11 +130,13 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Draw Details</p>
-              <h2 class="text-xl font-semibold text-slate-900">Trade Line Items</h2>
+              <h2 class="text-xl font-semibold text-slate-900">Trade Line Item</h2>
             </div>
             <p class="text-sm text-slate-600">Each draw is limited to a single trade.</p>
           </div>
+
           <div id="lineItems" class="space-y-4"></div>
+
           <div class="mt-6 flex items-center justify-between">
             <div class="text-sm text-slate-600">Total Draw Request</div>
             <div id="totalAmount" class="text-2xl font-semibold text-slate-900">$0.00</div>
@@ -138,10 +151,11 @@
               class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50/60 cursor-pointer"
             >
               <p class="text-slate-800 font-medium">Drag & drop your PDF/Image invoice</p>
-              <p class="text-xs text-slate-500 mt-2">Single file only. Converted to Base64 for secure submission.</p>
+              <p class="text-xs text-slate-500 mt-2">Single file only. (Recommended &lt; 2MB)</p>
               <input id="fileInput" type="file" accept="application/pdf,image/*" class="hidden" />
               <div id="fileInfo" class="text-sm text-slate-700 mt-3"></div>
             </div>
+            <p id="fileWarning" class="text-xs text-rose-600 hidden">File is too large. Please upload a smaller file (under 2MB).</p>
           </div>
 
           <div class="space-y-3 p-4 rounded-xl bg-slate-50/60 border border-slate-100">
@@ -154,12 +168,15 @@
             </ul>
 
             <button
+              id="submitBtn"
               type="submit"
-              class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition"
+              class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled
             >
               Submit Draw Request
             </button>
-            <p id="submitMessage" class="text-xs text-emerald-600"></p>
+
+            <p id="submitMessage" class="text-xs"></p>
           </div>
         </section>
       </form>
@@ -170,13 +187,26 @@
         <div>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status Tracking</p>
           <h2 class="text-xl font-semibold text-slate-900">Track My Payments</h2>
+          <p class="text-sm text-slate-600 mt-1">Shows requests for this contractor only.</p>
         </div>
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search by project, trade, or status"
-          class="w-full md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
-        />
+
+        <div class="flex gap-2 w-full md:w-auto">
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by project, trade, or status"
+            class="w-full md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
+          />
+          <button
+            id="refreshStatusBtn"
+            type="button"
+            class="shrink-0 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-semibold"
+            title="Refresh"
+            disabled
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -193,6 +223,8 @@
           <tbody id="statusTable" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
+
+      <p id="statusEmpty" class="text-sm text-slate-500 mt-3 hidden">No payment records yet.</p>
     </section>
   </div>
 
@@ -201,93 +233,20 @@
     // ✅ Your live Apps Script Web App URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSNQtTXZyNzv7ZcUTMCt96Via1Q-Wh1IHlTuWKijjAtNK5z_ajPIJL01YPml3TbUX8BQ/exec';
 
+    const FILE_SIZE_LIMIT_BYTES = 2 * 1024 * 1024; // 2MB
+
     const state = {
       budgets: [],
-      statusRows: [
-        { project: 'Lakeside Villas', trade: 'Electrical', amount: 8200, status: 'Processing', updated: '2024-07-02' },
-        { project: 'Harbor Point', trade: 'Plumbing', amount: 5300, status: 'Paid', updated: '2024-06-28' },
-        { project: 'Lakeside Villas', trade: 'Painting', amount: 4100, status: 'In Review', updated: '2024-06-30' },
-        { project: 'Summit Ridge', trade: 'Framing', amount: 12900, status: 'Paid', updated: '2024-06-25' },
-      ],
+      allowedProjects: null,
+      contractor: null,
+      contractorPin: null,
       invoiceBase64: null,
       invoiceName: '',
-      contractor: null,
+      statusRows: [],
+      isSubmitting: false,
     };
 
-    async function verifyContractor(pin) {
-      try {
-        const response = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);
-        if (!response.ok) throw new Error('Failed to fetch contractor');
-        const data = await response.json();
-        const contractor = data?.contractor || data?.Contractor || data;
-        if (contractor?.name) return contractor;
-      } catch (error) {
-        // fallback to mock data if Apps Script is not available
-        const fallback = [
-          { pin: '1234', name: 'ACME Builders' },
-          { pin: '4321', name: 'Harbor Contractors' },
-          { pin: '2468', name: 'Summit Ridge Services' },
-        ];
-        return fallback.find((c) => c.pin === pin) || null;
-      }
-      return null;
-    }
-
-    function setContractor(name) {
-      state.contractor = { name };
-
-      // form field
-      const contractorInput = document.getElementById('contractorName');
-      contractorInput.value = name;
-      contractorInput.classList.remove('bg-slate-50');
-
-      // headline
-      const headerEl = document.getElementById('headerContractorName');
-      headerEl.textContent = name;
-
-      updateSummary();
-    }
-
-    function hidePinModal() {
-      document.getElementById('pinModal').classList.add('hidden');
-    }
-
-    function setupPinModal() {
-      const pinForm = document.getElementById('pinForm');
-      const pinInput = document.getElementById('pinInput');
-      const pinError = document.getElementById('pinError');
-      const submitButton = document.getElementById('pinSubmit');
-
-      pinInput.focus();
-
-      pinForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pin = pinInput.value.trim();
-        if (!/^[0-9]{4}$/.test(pin)) {
-          pinError.textContent = 'Please enter a 4-digit PIN.';
-          pinError.classList.remove('hidden');
-          return;
-        }
-
-        pinError.classList.add('hidden');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Verifying...';
-
-        const contractor = await verifyContractor(pin);
-
-        if (contractor?.name) {
-          setContractor(contractor.name);
-          hidePinModal();
-        } else {
-          pinError.textContent = 'That PIN was not recognized. Please try again.';
-          pinError.classList.remove('hidden');
-        }
-
-        submitButton.disabled = false;
-        submitButton.textContent = 'Continue';
-      });
-    }
-
+    // ---------- Utilities ----------
     function formatCurrency(value) {
       const number = Number(value) || 0;
       return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -302,35 +261,86 @@
     function nextThursday(date) {
       const result = new Date(date);
       const day = result.getDay();
-      const delta = (11 - day) % 7 || 7; // days until next Thursday
+      const delta = (11 - day) % 7 || 7;
       result.setDate(result.getDate() + delta);
       return result;
     }
 
+    function openSubmitModal(title, body) {
+      document.getElementById('submitModalTitle').textContent = title;
+      document.getElementById('submitModalBody').textContent = body;
+      document.getElementById('submitModal').classList.remove('hidden');
+    }
+
+    function closeSubmitModal() {
+      document.getElementById('submitModal').classList.add('hidden');
+    }
+
+    // ---------- API ----------
+    async function verifyContractor(pin) {
+      const res = await fetch(`${SCRIPT_URL}?pin=${encodeURIComponent(pin)}`);
+      if (!res.ok) throw new Error('PIN lookup failed');
+      const data = await res.json();
+      const c = data?.contractor || data;
+      if (!c?.name) return null;
+
+      // Normalize projects to array
+      const projects = Array.isArray(c.projects)
+        ? c.projects
+        : (typeof c.projects === 'string' ? c.projects.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+      return { name: c.name, projects };
+    }
+
     async function fetchBudgets() {
-      try {
-        const response = await fetch(SCRIPT_URL);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        const budgets = Array.isArray(data) ? data : data?.budgets || [];
-        state.budgets = budgets;
-      } catch (error) {
-        state.budgets = [
-          { project: 'Lakeside Villas', trade: 'Plumbing', remaining: 12000 },
-          { project: 'Lakeside Villas', trade: 'Electrical', remaining: 9500 },
-          { project: 'Harbor Point', trade: 'Painting', remaining: 7000 },
-          { project: 'Harbor Point', trade: 'Plumbing', remaining: 8500 },
-          { project: 'Summit Ridge', trade: 'Framing', remaining: 15000 },
-        ];
-      }
+      const res = await fetch(`${SCRIPT_URL}?budgets=1`);
+      if (!res.ok) throw new Error('Budgets fetch failed');
+      const data = await res.json();
+      const budgets = Array.isArray(data?.budgets) ? data.budgets : (Array.isArray(data) ? data : []);
+      state.budgets = budgets;
+    }
+
+    async function fetchStatus() {
+      const res = await fetch(`${SCRIPT_URL}?status=1&pin=${encodeURIComponent(state.contractorPin)}`);
+      if (!res.ok) throw new Error('Status fetch failed');
+      const data = await res.json();
+      state.statusRows = Array.isArray(data?.rows) ? data.rows : [];
+    }
+
+    // ---------- UI ----------
+    function hidePinModal() {
+      document.getElementById('pinModal').classList.add('hidden');
+    }
+
+    function enableAppUI() {
+      document.getElementById('projectSelect').disabled = false;
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('refreshStatusBtn').disabled = false;
+    }
+
+    function setContractor(contractor, pin) {
+      state.contractor = { name: contractor.name };
+      state.allowedProjects = contractor.projects || [];
+      state.contractorPin = pin;
+      document.getElementById('headerContractorName').textContent = contractor.name;
+      enableAppUI();
       populateProjects();
       renderLineItems();
+      updateSummary();
     }
 
     function populateProjects() {
       const select = document.getElementById('projectSelect');
       select.innerHTML = '<option value="" disabled selected>Select a project</option>';
-      const projects = [...new Set(state.budgets.map((b) => b.project))];
+
+      let projects = [...new Set(state.budgets.map((b) => b.project))];
+
+      // filter to contractor’s allowed projects
+      if (Array.isArray(state.allowedProjects) && state.allowedProjects.length) {
+        const allowed = new Set(state.allowedProjects);
+        projects = projects.filter(p => allowed.has(p));
+      }
+
       projects.forEach((project) => {
         const option = document.createElement('option');
         option.value = project;
@@ -347,6 +357,7 @@
       const container = document.getElementById('lineItems');
       container.innerHTML = '';
       container.appendChild(createLineItemRow(0)); // one row only
+      updateTotals();
     }
 
     function createLineItemRow(index) {
@@ -393,8 +404,8 @@
       const remainingLabel = row.querySelector('.remaining-label');
       const amountInput = row.querySelector('.amount-input');
       const trade = selectEl.value;
-      const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
 
+      const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
       remainingLabel.textContent = budget ? formatCurrency(budget.remaining) : '—';
 
       if (budget) {
@@ -420,29 +431,23 @@
         amountInput.classList.remove('border-rose-400', 'bg-rose-50');
         warning.classList.add('hidden');
       }
-
       updateTotals();
     }
 
     function updateTotals() {
-      const rows = document.querySelectorAll('#lineItems .grid');
-      let total = 0;
-      rows.forEach((row) => {
-        const amount = Number(row.querySelector('.amount-input')?.value) || 0;
-        total += amount;
-      });
-      document.getElementById('totalAmount').textContent = formatCurrency(total);
+      const row = document.querySelector('#lineItems .grid');
+      const amount = Number(row?.querySelector('.amount-input')?.value) || 0;
+      document.getElementById('totalAmount').textContent = formatCurrency(amount);
       updateSummary();
     }
 
     function updateSummary() {
       const project = document.getElementById('projectSelect').value || '—';
       const total = document.getElementById('totalAmount').textContent;
-      const invoice = state.invoiceBase64 ? `Invoice ready (${state.invoiceName || 'uploaded file'})` : 'Pending';
+      const invoice = state.invoiceBase64 ? `Ready (${state.invoiceName || 'uploaded file'})` : 'Pending';
       const contractorName = state.contractor?.name || '—';
 
-      const summaryList = document.getElementById('summaryList');
-      summaryList.innerHTML = `
+      document.getElementById('summaryList').innerHTML = `
         <li>Contractor: ${contractorName}</li>
         <li>Project: ${project}</li>
         <li>Total Amount: ${total}</li>
@@ -462,6 +467,7 @@
     function setupFlatpickr() {
       const today = new Date();
       const minDate = addDays(today, 3);
+
       document.getElementById('bufferMessage').textContent =
         `Earliest work date available is ${minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.`;
 
@@ -469,10 +475,7 @@
         minDate,
         dateFormat: 'm/d/Y',
         disableMobile: true,
-        onChange: (selectedDates) => {
-          const date = selectedDates[0];
-          updatePaymentEstimate(date);
-        },
+        onChange: (selectedDates) => updatePaymentEstimate(selectedDates[0]),
       });
     }
 
@@ -480,11 +483,28 @@
       const dropzone = document.getElementById('dropzone');
       const fileInput = document.getElementById('fileInput');
       const fileInfo = document.getElementById('fileInfo');
+      const fileWarning = document.getElementById('fileWarning');
+
+      const clearFile = () => {
+        fileInput.value = '';
+        fileInfo.textContent = '';
+        state.invoiceBase64 = null;
+        state.invoiceName = '';
+        fileWarning.classList.add('hidden');
+        updateSummary();
+      };
 
       const handleFiles = (files) => {
         const file = files?.[0];
         if (!file) return;
 
+        if (file.size > FILE_SIZE_LIMIT_BYTES) {
+          clearFile();
+          fileWarning.classList.remove('hidden');
+          return;
+        }
+
+        fileWarning.classList.add('hidden');
         fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
 
         const reader = new FileReader();
@@ -515,39 +535,61 @@
 
     function setupStatusTable() {
       const tbody = document.getElementById('statusTable');
+      const emptyEl = document.getElementById('statusEmpty');
 
-      const render = (rows) => {
-        tbody.innerHTML = rows
-          .map(
-            (row) => `
-          <tr class="text-slate-800">
-            <td class="py-3 pr-4">${row.project}</td>
-            <td class="py-3 pr-4">${row.trade}</td>
-            <td class="py-3 pr-4">${formatCurrency(row.amount)}</td>
-            <td class="py-3 pr-4">
-              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                row.status === 'Paid'
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : row.status === 'Processing'
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'bg-amber-50 text-amber-700'
-              }">${row.status}</span>
-            </td>
-            <td class="py-3 pr-4 text-slate-500">${row.updated}</td>
-          </tr>`
-          )
-          .join('');
+      const statusPill = (status) => {
+        const s = (status || '').toLowerCase();
+        if (s === 'paid') return 'bg-emerald-50 text-emerald-700';
+        if (s === 'processing') return 'bg-blue-50 text-blue-700';
+        if (s === 'in review' || s === 'review') return 'bg-amber-50 text-amber-700';
+        return 'bg-slate-100 text-slate-700';
       };
 
-      render(state.statusRows);
+      const render = (rows) => {
+        if (!rows.length) {
+          tbody.innerHTML = '';
+          emptyEl.classList.remove('hidden');
+          return;
+        }
+        emptyEl.classList.add('hidden');
 
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = state.statusRows.filter((row) =>
-          [row.project, row.trade, row.status].some((value) => value.toLowerCase().includes(term))
+        tbody.innerHTML = rows.map((row) => `
+          <tr class="text-slate-800">
+            <td class="py-3 pr-4">${row.project || ''}</td>
+            <td class="py-3 pr-4">${row.trade || ''}</td>
+            <td class="py-3 pr-4">${formatCurrency(row.amount)}</td>
+            <td class="py-3 pr-4">
+              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusPill(row.status)}">${row.status || ''}</span>
+            </td>
+            <td class="py-3 pr-4 text-slate-500">${row.updated || ''}</td>
+          </tr>
+        `).join('');
+      };
+
+      const applySearch = () => {
+        const term = (document.getElementById('searchInput').value || '').toLowerCase();
+        const filtered = state.statusRows.filter((r) =>
+          [r.project, r.trade, r.status].some((v) => (v || '').toLowerCase().includes(term))
         );
         render(filtered);
-      });
+      };
+
+      document.getElementById('searchInput').addEventListener('input', applySearch);
+
+      // initial render
+      render(state.statusRows);
+
+      // expose for refresh use
+      return { render, applySearch };
+    }
+
+    async function refreshStatusUI(renderer) {
+      try {
+        await fetchStatus();
+        renderer.applySearch();
+      } catch (e) {
+        // keep current
+      }
     }
 
     function setupLineItemEvents() {
@@ -557,9 +599,7 @@
       });
 
       document.getElementById('lineItems').addEventListener('change', (e) => {
-        if (e.target.classList.contains('trade-select')) {
-          updateRemainingLabels(e.target);
-        }
+        if (e.target.classList.contains('trade-select')) updateRemainingLabels(e.target);
       });
 
       document.getElementById('lineItems').addEventListener('input', (e) => {
@@ -573,125 +613,218 @@
       });
     }
 
-    async function submitForm(event) {
+    function setupSubmitModal() {
+      document.getElementById('submitModalOk').addEventListener('click', closeSubmitModal);
+      document.getElementById('submitModal').addEventListener('click', (e) => {
+        if (e.target.id === 'submitModal') closeSubmitModal();
+      });
+    }
+
+    function setupRefreshButton(renderer) {
+      const btn = document.getElementById('refreshStatusBtn');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = 'Refreshing…';
+        await refreshStatusUI(renderer);
+        btn.textContent = 'Refresh';
+        btn.disabled = false;
+      });
+    }
+
+    function getCurrentLineItem() {
+      const row = document.querySelector('#lineItems .grid');
+      const trade = row?.querySelector('.trade-select')?.value || '';
+      const amount = Number(row?.querySelector('.amount-input')?.value) || 0;
+      return { trade, amount };
+    }
+
+    function findMatchingStatusRow(snapshot) {
+      // Try to locate the newest matching row after submit (best-effort confirmation)
+      const rows = state.statusRows || [];
+      const wanted = {
+        project: snapshot.project,
+        trade: snapshot.trade,
+        amount: Number(snapshot.amount) || 0,
+      };
+      // Prefer newest (assume status returns newest first; if not, reverse copy)
+      for (const r of rows) {
+        const sameProject = (r.project || '') === wanted.project;
+        const sameTrade = (r.trade || '') === wanted.trade;
+        const sameAmount = Math.abs((Number(r.amount) || 0) - wanted.amount) < 0.01;
+        if (sameProject && sameTrade && sameAmount) return r;
+      }
+      return null;
+    }
+
+    async function submitForm(event, renderer) {
       event.preventDefault();
 
-      const project = document.getElementById('projectSelect').value;
-      const contractorName = state.contractor?.name || document.getElementById('contractorName').value.trim();
-      const workDate = document.getElementById('workDate').value;
-      const rows = document.querySelectorAll('#lineItems .grid');
-
-      const lineItems = [];
-      let validationError = '';
-
-      rows.forEach((row) => {
-        const tradeSelect = row.querySelector('.trade-select');
-        const amountInput = row.querySelector('.amount-input');
-        const warning = row.querySelector('.warning');
-
-        const trade = tradeSelect?.value;
-        const amount = Number(amountInput?.value) || 0;
-        const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
-        const max = budget?.remaining || 0;
-
-        if (trade) {
-          if (amount <= 0) {
-            warning.textContent = 'Enter an amount greater than 0.';
-            warning.classList.remove('hidden');
-            amountInput.classList.add('border-rose-400', 'bg-rose-50');
-            validationError = validationError || 'Please enter an amount greater than 0.';
-          } else if (amount > max) {
-            warning.textContent = 'Amount exceeds remaining balance.';
-            warning.classList.remove('hidden');
-            amountInput.classList.add('border-rose-400', 'bg-rose-50');
-            validationError = validationError || 'Amount exceeds remaining balance.';
-          } else {
-            warning.classList.add('hidden');
-            amountInput.classList.remove('border-rose-400', 'bg-rose-50');
-            lineItems.push({ trade, amount });
-          }
-        }
-      });
-
-      // Safety: enforce only one trade per draw.
-      if (lineItems.length > 1) {
-        const msg = document.getElementById('submitMessage');
-        msg.textContent = 'Each draw must include only one trade.';
-        msg.classList.remove('text-emerald-600');
-        msg.classList.add('text-rose-600');
-        return;
-      }
-
-      const totalAmount = lineItems.reduce((sum, item) => sum + item.amount, 0);
-
       const msg = document.getElementById('submitMessage');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (state.isSubmitting) return;
 
       if (!state.contractor?.name) {
         msg.textContent = 'Please verify your contractor PIN before submitting.';
-        msg.classList.remove('text-emerald-600');
-        msg.classList.add('text-rose-600');
+        msg.className = 'text-xs text-rose-600';
         return;
       }
 
-      if (!project || !contractorName || !workDate || !lineItems.length) {
-        const baseMessage = 'Please complete all required fields and add one valid line item.';
-        msg.textContent = validationError ? `${baseMessage} ${validationError}` : baseMessage;
-        msg.classList.remove('text-emerald-600');
-        msg.classList.add('text-rose-600');
+      const project = document.getElementById('projectSelect').value;
+      const workDate = document.getElementById('workDate').value;
+      const { trade, amount } = getCurrentLineItem();
+
+      if (!project || !workDate || !trade || amount <= 0) {
+        msg.textContent = 'Please complete all required fields and enter an amount greater than 0.';
+        msg.className = 'text-xs text-rose-600';
         return;
       }
+
+      // Validate against remaining
+      const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
+      const max = budget?.remaining || 0;
+      if (amount > max) {
+        msg.textContent = 'Amount exceeds remaining balance.';
+        msg.className = 'text-xs text-rose-600';
+        return;
+      }
+
+      // Optional: require invoice (comment this IN if you want to enforce it)
+      // if (!state.invoiceBase64) {
+      //   msg.textContent = 'Please upload an invoice before submitting.';
+      //   msg.className = 'text-xs text-rose-600';
+      //   return;
+      // }
 
       const payload = {
+        ContractorName: state.contractor.name,
+        ContractorPin: state.contractorPin, // for server-side safety / filtering
         Project: project,
-        ContractorName: contractorName,
         WorkDate: workDate,
         EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
-        TotalAmount: totalAmount,
+        Trade: trade,
+        Amount: amount,
         InvoiceFile: state.invoiceBase64,
         InvoiceFileName: state.invoiceName,
-        LineItems: lineItems,
       };
 
-     try {
-  // Avoid CORS preflight by sending as text/plain and using no-cors
-  await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
-  });
+      // Submit lock UX
+      state.isSubmitting = true;
+      msg.textContent = '';
+      msg.className = 'text-xs text-slate-600';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
 
-  // With no-cors, we cannot read the response. If the request was sent, treat as success.
-  msg.textContent = 'Draw request submitted successfully.';
-  msg.classList.remove('text-rose-600');
-  msg.classList.add('text-emerald-600');
+      const snapshot = { project, trade, amount };
 
-  // Optional: reset form UI (comment out if you don’t want it)
-  // document.getElementById('drawForm').reset();
-  // state.invoiceBase64 = null; state.invoiceName = '';
-  // renderLineItems(); updateTotals(); updateSummary();
+      try {
+        // Reliable from GitHub Pages: avoid CORS preflight
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+        });
 
-} catch (error) {
-  msg.textContent = 'There was an issue submitting your request. Please try again.';
-  msg.classList.remove('text-emerald-600');
-  msg.classList.add('text-rose-600');
-}
+        // Best-effort: refresh status, and if we see a match, show a stronger confirmation
+        // Note: small delay helps Apps Script finish writing
+        await new Promise((r) => setTimeout(r, 900));
+        try {
+          await fetchStatus();
+          renderer.applySearch();
+        } catch (e) {}
 
+        const match = findMatchingStatusRow(snapshot);
+        if (match?.requestId) {
+          openSubmitModal('Request received', `Thank you. Your request was received. Request ID: ${match.requestId}.`);
+        } else {
+          openSubmitModal('Request sent', 'Your draw request was sent. Please check “Track My Payments” for the latest status.');
+        }
+
+        // Reset form bits (keep contractor & budgets)
+        document.getElementById('drawForm').reset();
+        state.invoiceBase64 = null;
+        state.invoiceName = '';
+        document.getElementById('fileInfo').textContent = '';
+        document.getElementById('fileWarning').classList.add('hidden');
+
+        renderLineItems();
+        updateTotals();
+        updateSummary();
+
+      } catch (error) {
+        console.error('Submit error:', error);
+        msg.textContent = `There was an issue submitting your request. (${error?.message || 'unknown error'})`;
+        msg.className = 'text-xs text-rose-600';
+      } finally {
+        state.isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Draw Request';
+      }
+    }
+
+    // ---------- Init ----------
+    function setupPinModal(renderer) {
+      const pinForm = document.getElementById('pinForm');
+      const pinInput = document.getElementById('pinInput');
+      const pinError = document.getElementById('pinError');
+      const submitButton = document.getElementById('pinSubmit');
+
+      pinInput.focus();
+
+      pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = pinInput.value.trim();
+
+        if (!/^[0-9]{4}$/.test(pin)) {
+          pinError.textContent = 'Please enter a 4-digit PIN.';
+          pinError.classList.remove('hidden');
+          return;
+        }
+
+        pinError.classList.add('hidden');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Verifying…';
+
+        try {
+          const contractor = await verifyContractor(pin);
+          if (!contractor?.name) {
+            pinError.textContent = 'That PIN was not recognized. Please try again.';
+            pinError.classList.remove('hidden');
+          } else {
+            // Load budgets + status after PIN so access rules apply
+            await fetchBudgets();
+            setContractor(contractor, pin);
+
+            await refreshStatusUI(renderer);
+
+            hidePinModal();
+          }
+        } catch (err) {
+          pinError.textContent = 'Unable to verify PIN right now. Please try again.';
+          pinError.classList.remove('hidden');
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Continue';
+        }
+      });
     }
 
     function init() {
-      fetchBudgets();
       setupFlatpickr();
       setupFileUpload();
-      setupStatusTable();
+      setupSubmitModal();
       setupLineItemEvents();
-      setupPinModal();
-      updateSummary();
-      document.getElementById('drawForm').addEventListener('submit', submitForm);
+
+      const renderer = setupStatusTable();
+      setupRefreshButton(renderer);
+
+      setupPinModal(renderer);
+
+      document.getElementById('drawForm').addEventListener('submit', (e) => submitForm(e, renderer));
     }
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
-
