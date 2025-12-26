@@ -4,24 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contractor Draw Portal</title>
-
   <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     .glass-card { box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12); }
   </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-
   <!-- PIN MODAL -->
   <div id="pinModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure Access</p>
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Enter Contractor PIN</h2>
       <p class="text-sm text-slate-600 mt-2">
-        Use your 4-digit PIN so we can load only your assigned projects.
+        Use your 4-digit PIN so we can match your contractor profile automatically.
       </p>
 
       <form id="pinForm" class="mt-5 space-y-4">
@@ -37,8 +34,7 @@
             placeholder="1234"
             class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50 tracking-[0.3em] text-center text-lg"
           />
-          <p id="pinError" class="text-xs text-rose-600 hidden">That PIN was not recognized. Please try again.</p>
-          <p id="pinLoading" class="text-xs text-slate-500 hidden">Loading your projects...</p>
+          <p id="pinError" class="text-xs text-rose-600 hidden"></p>
         </div>
 
         <div class="flex justify-end gap-3">
@@ -54,15 +50,32 @@
     </div>
   </div>
 
-  <!-- OK MODAL (after submit) -->
-  <div id="okModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50">
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Done</p>
-      <h2 id="okTitle" class="text-2xl font-semibold text-slate-900 mt-2">Submitted</h2>
-      <p id="okBody" class="text-sm text-slate-600 mt-2">Your draw request was submitted.</p>
-      <div class="flex justify-end mt-6">
-        <button id="okBtn" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">
+      <p class="text-xs uppercase tracking-[0.2em] text-emerald-600">Success</p>
+      <h2 class="text-2xl font-semibold text-slate-900 mt-2">Request Submitted</h2>
+      <p id="successText" class="text-sm text-slate-600 mt-2">Your draw request was submitted.</p>
+      <div class="mt-6 flex justify-end">
+        <button id="successOkBtn" class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition">
           OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCEL CONFIRM MODAL -->
+  <div id="cancelModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
+      <p class="text-xs uppercase tracking-[0.2em] text-amber-600">Confirm</p>
+      <h2 class="text-2xl font-semibold text-slate-900 mt-2">Cancel this draw?</h2>
+      <p id="cancelText" class="text-sm text-slate-600 mt-2">This will mark the draw as <b>Canceled</b>. It won’t be deleted.</p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="cancelKeepBtn" class="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition">
+          Keep
+        </button>
+        <button id="cancelConfirmBtn" class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition">
+          Cancel Draw
         </button>
       </div>
     </div>
@@ -72,18 +85,19 @@
     <header class="mb-8 text-center">
       <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
 
-      <!-- Contractor name headline only -->
-      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">—</h1>
+      <!-- Headline: contractor name only -->
+      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">
+        —
+      </h1>
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mt-2">Draw Request</p>
 
       <p class="text-slate-600 mt-3 max-w-3xl mx-auto">
-        Select your project, add a trade line item, upload an invoice, and see your estimated payment timeline.
+        Select your project, add a trade line item, upload invoices/photos, and see your estimated payment timeline.
       </p>
     </header>
 
     <main class="bg-white glass-card rounded-2xl p-6 md:p-8">
       <form id="drawForm" class="space-y-8">
-
         <section class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Project</label>
@@ -91,11 +105,10 @@
               id="projectSelect"
               class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
               required
-              disabled
             >
-              <option value="" selected>Verify PIN to load projects</option>
+              <option value="" disabled selected>Select a project</option>
             </select>
-            <p id="projectHint" class="text-xs text-slate-500">Projects are filtered to your account.</p>
+            <p class="text-xs text-slate-500">Only projects assigned to you will appear.</p>
           </div>
 
           <div class="space-y-2">
@@ -106,7 +119,6 @@
               placeholder="MM/DD/YYYY"
               class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
               required
-              disabled
             />
             <p id="bufferMessage" class="text-xs text-amber-600"></p>
           </div>
@@ -124,54 +136,44 @@
           </div>
 
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Total Draw Request</label>
-            <div id="totalAmount" class="rounded-xl border border-slate-200 px-4 py-3 text-slate-900 font-semibold bg-slate-50">
-              $0.00
+            <label class="block text-sm font-medium text-slate-700">Trade & Amount</label>
+            <div id="lineItems" class="space-y-4"></div>
+            <div class="mt-2 flex items-center justify-between">
+              <div class="text-sm text-slate-600">Total Draw Request</div>
+              <div id="totalAmount" class="text-2xl font-semibold text-slate-900">$0.00</div>
             </div>
+            <p class="text-xs text-slate-500">Each draw is limited to a single trade.</p>
           </div>
-        </section>
-
-        <section class="border border-slate-100 rounded-2xl p-4 md:p-6 bg-slate-50/60">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Draw Details</p>
-              <h2 class="text-xl font-semibold text-slate-900">Trade Line Item</h2>
-            </div>
-            <p class="text-sm text-slate-600">Each draw is limited to a single trade.</p>
-          </div>
-
-          <div id="lineItems" class="space-y-4"></div>
         </section>
 
         <section class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-slate-700">Invoice Upload</label>
+            <label class="block text-sm font-medium text-slate-700">Upload files (up to 5)</label>
             <div
               id="dropzone"
               class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50/60 cursor-pointer"
             >
-              <p class="text-slate-800 font-medium">Drag & drop your PDF/Image invoice</p>
-              <p class="text-xs text-slate-500 mt-2">Single file only. Converted to Base64 for submission.</p>
-              <input id="fileInput" type="file" accept="application/pdf,image/*" class="hidden" />
+              <p class="text-slate-800 font-medium">Drag & drop PDF/images</p>
+              <p class="text-xs text-slate-500 mt-2">Invoices + photos are supported.</p>
+              <input id="fileInput" type="file" accept="application/pdf,image/*" multiple class="hidden" />
               <div id="fileInfo" class="text-sm text-slate-700 mt-3"></div>
             </div>
+            <p id="fileError" class="text-xs text-rose-600 hidden"></p>
           </div>
 
           <div class="space-y-3 p-4 rounded-xl bg-slate-50/60 border border-slate-100">
             <h3 class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
             <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
-              <li>Contractor: —</li>
               <li>Project: —</li>
               <li>Trade: —</li>
-              <li>Amount: $0.00</li>
-              <li>Invoice: Pending</li>
+              <li>Total Amount: $0.00</li>
+              <li>Files: None</li>
             </ul>
 
             <button
               id="submitBtn"
               type="submit"
-              class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled
+              class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Submit Draw Request
             </button>
@@ -179,7 +181,6 @@
             <p id="submitMessage" class="text-xs text-rose-600"></p>
           </div>
         </section>
-
       </form>
     </main>
 
@@ -188,15 +189,24 @@
         <div>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status Tracking</p>
           <h2 class="text-xl font-semibold text-slate-900">Track My Payments</h2>
-          <p class="text-sm text-slate-600 mt-1">This list shows only your submitted draws.</p>
+          <p class="text-sm text-slate-600 mt-1">You can cancel a submitted request from here.</p>
         </div>
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search by project, trade, or status"
-          class="w-full md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
-          disabled
-        />
+        <div class="flex gap-3 w-full md:w-auto">
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by project, trade, or status"
+            class="flex-1 md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
+          />
+          <button
+            id="refreshStatusBtn"
+            type="button"
+            class="inline-flex items-center justify-center bg-white border border-slate-200 text-slate-900 px-4 py-3 rounded-xl font-semibold hover:bg-slate-50 transition"
+            title="Refresh"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div class="overflow-x-auto">
@@ -208,61 +218,37 @@
               <th class="py-3 pr-4">Amount</th>
               <th class="py-3 pr-4">Status</th>
               <th class="py-3 pr-4">Updated</th>
+              <th class="py-3 pr-4 text-right">Action</th>
             </tr>
           </thead>
-          <tbody id="statusTable" class="divide-y divide-slate-100">
-            <tr><td class="py-4 text-slate-500" colspan="5">Verify PIN to load your payment status.</td></tr>
-          </tbody>
+          <tbody id="statusTable" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
     </section>
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // ✅ Replace with your latest Apps Script Web App URL (NEW deployment)
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHH6DEgjr-jexZGuqDk9kpzIBL4SeDAGzS62KcIS1Lehy8nnX3_fWfWv4yKYhccZs9Kg/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSNQtTXZyNzv7ZcUTMCt96Via1Q-Wh1IHlTuWKijjAtNK5z_ajPIJL01YPml3TbUX8BQ/exec';
 
     const state = {
-      pin: null,
+      pin: '',
       contractor: null,
       budgets: [],
+      invoiceFiles: [],
+      selectedTrade: '',
+      selectedAmount: 0,
+      selectedRemaining: null,
       statusRows: [],
-      invoiceBase64: null,
-      invoiceName: '',
+      pendingCancelRequestId: null,
     };
-
-    // Warm-up (helps reduce first-call delay)
-    fetch(`${SCRIPT_URL}?action=ping`).catch(() => {});
-
-    function showOkModal(title, body) {
-      document.getElementById('okTitle').textContent = title;
-      document.getElementById('okBody').textContent = body;
-      const modal = document.getElementById('okModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function hideOkModal() {
-      const modal = document.getElementById('okModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    document.getElementById('okBtn').addEventListener('click', hideOkModal);
 
     function formatCurrency(value) {
       const number = Number(value) || 0;
       return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     }
-
-    function addDays(date, days) {
-      const copy = new Date(date);
-      copy.setDate(copy.getDate() + days);
-      return copy;
-    }
-
+    function parseMoney(value) { const n = Number(value); return Number.isFinite(n) ? n : 0; }
+    function addDays(date, days) { const copy = new Date(date); copy.setDate(copy.getDate() + days); return copy; }
     function nextThursday(date) {
       const result = new Date(date);
       const day = result.getDay();
@@ -270,67 +256,90 @@
       result.setDate(result.getDate() + delta);
       return result;
     }
+    function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    async function apiGet(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Network error');
-      return await res.json();
+    async function apiGet(params) {
+      const url = new URL(SCRIPT_URL);
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      const resp = await fetch(url.toString(), { method: 'GET' });
+      if (!resp.ok) throw new Error('Network error');
+      return resp.json();
     }
 
     async function verifyContractor(pin) {
-      const url = `${SCRIPT_URL}?action=contractor&pin=${encodeURIComponent(pin)}`;
-      const data = await apiGet(url);
-      return data?.contractor || null;
+      const data = await apiGet({ action: 'verifyPin', pin });
+      if (data && data.ok && data.contractor) return data.contractor;
+      return null;
     }
 
-    async function loadBudgetsAndStatus() {
-      const projectSelect = document.getElementById('projectSelect');
-      projectSelect.disabled = true;
-      projectSelect.innerHTML = '<option selected>Loading projects...</option>';
+    function setContractor(contractor) {
+      state.contractor = contractor;
+      document.getElementById('headerContractorName').textContent = contractor.name || '—';
+      updateSummary();
+    }
 
-      const pin = state.pin;
+    function setupPinModal() {
+      const pinForm = document.getElementById('pinForm');
+      const pinInput = document.getElementById('pinInput');
+      const pinError = document.getElementById('pinError');
+      const submitButton = document.getElementById('pinSubmit');
 
-      const [bud, stat] = await Promise.all([
-        apiGet(`${SCRIPT_URL}?action=budgets&pin=${encodeURIComponent(pin)}`),
-        apiGet(`${SCRIPT_URL}?action=status&pin=${encodeURIComponent(pin)}`),
-      ]);
+      pinInput.focus();
 
-      state.budgets = (bud?.ok && Array.isArray(bud.budgets)) ? bud.budgets : [];
-      state.statusRows = (stat?.ok && Array.isArray(stat.rows)) ? stat.rows : [];
+      pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = pinInput.value.trim();
 
+        if (!/^[0-9]{4}$/.test(pin)) {
+          pinError.textContent = 'Please enter a 4-digit PIN.';
+          pinError.classList.remove('hidden');
+          return;
+        }
+
+        pinError.classList.add('hidden');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Verifying...';
+
+        try {
+          const contractor = await verifyContractor(pin);
+          if (contractor?.name) {
+            state.pin = pin;
+            setContractor(contractor);
+            hideModal('pinModal');
+
+            await fetchBudgetsAndProjects();
+            await fetchStatusRows(true);
+          } else {
+            pinError.textContent = 'That PIN was not recognized. Please try again.';
+            pinError.classList.remove('hidden');
+          }
+        } catch (err) {
+          pinError.textContent = 'Could not verify PIN right now. Please try again.';
+          pinError.classList.remove('hidden');
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Continue';
+        }
+      });
+    }
+
+    async function fetchBudgetsAndProjects() {
+      const data = await apiGet({ action: 'getBudgets', pin: state.pin });
+      state.budgets = (data?.budgets || []).map((b) => ({
+        project: b.project,
+        trade: b.trade,
+        original: Number(b.original || 0),
+        currentAvailable: Number(b.currentAvailable ?? b.available ?? 0),
+      }));
       populateProjects();
-      renderLineItems();
-      renderStatusTable(state.statusRows);
-
-      // enable form
-      projectSelect.disabled = false;
-      document.getElementById('workDate').disabled = false;
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('searchInput').disabled = false;
-
-      // If only one project, auto-select it
-      const projects = [...new Set(state.budgets.map(b => b.project))];
-      if (projects.length === 1) {
-        projectSelect.value = projects[0];
-        renderLineItems();
-        updateSummary();
-      } else {
-        updateSummary();
-      }
+      renderLineItemRow();
     }
 
     function populateProjects() {
       const select = document.getElementById('projectSelect');
-      const projects = [...new Set(state.budgets.map((b) => b.project))];
-
       select.innerHTML = '<option value="" disabled selected>Select a project</option>';
-
-      if (!projects.length) {
-        select.innerHTML = '<option value="" selected>No projects assigned</option>';
-        select.disabled = true;
-        document.getElementById('submitBtn').disabled = true;
-      }
-
+      const projects = [...new Set(state.budgets.map((b) => b.project))].sort();
       projects.forEach((project) => {
         const option = document.createElement('option');
         option.value = project;
@@ -339,120 +348,108 @@
       });
     }
 
-    function getTradesForProject(project) {
-      return state.budgets.filter((b) => b.project === project);
+    function tradesForProject(project) {
+      return state.budgets.filter((b) => b.project === project).sort((a, b) => a.trade.localeCompare(b.trade));
     }
 
-    function renderLineItems() {
+    function renderLineItemRow() {
       const container = document.getElementById('lineItems');
       container.innerHTML = '';
-      container.appendChild(createLineItemRow(0));
-      updateTotals();
-    }
 
-    function createLineItemRow(index) {
       const project = document.getElementById('projectSelect').value;
-      const trades = project ? getTradesForProject(project) : [];
+      const trades = project ? tradesForProject(project) : [];
 
       const row = document.createElement('div');
       row.className = 'grid md:grid-cols-12 gap-4 items-start bg-white rounded-xl border border-slate-100 p-4 shadow-sm';
 
-      const tradeCol = document.createElement('div');
-      tradeCol.className = 'md:col-span-5 space-y-2';
-      tradeCol.innerHTML = `
-        <label class="text-xs font-medium text-slate-600">Trade</label>
-        <select data-index="${index}" class="trade-select w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" required ${project ? '' : 'disabled'}>
-          <option value="" disabled selected>${project ? 'Select trade' : 'Select project first'}</option>
-          ${trades.map((t) => `<option value="${t.trade}">${t.trade}</option>`).join('')}
-        </select>`;
+      row.innerHTML = `
+        <div class="md:col-span-5 space-y-2">
+          <label class="text-xs font-medium text-slate-600">Trade</label>
+          <select id="tradeSelect" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" ${project ? '' : 'disabled'} required>
+            <option value="" disabled selected>${project ? 'Select trade' : 'Select project first'}</option>
+            ${trades.map((t) => `<option value="${escapeHtml(t.trade)}">${escapeHtml(t.trade)}</option>`).join('')}
+          </select>
+        </div>
 
-      const balanceCol = document.createElement('div');
-      balanceCol.className = 'md:col-span-3 space-y-1';
-      balanceCol.innerHTML = `
-        <p class="text-xs font-medium text-slate-600">Remaining Balance</p>
-        <p class="remaining-label text-lg font-semibold text-emerald-700">—</p>`;
+        <div class="md:col-span-3 space-y-1">
+          <p class="text-xs font-medium text-slate-600">Budget Available</p>
+          <p id="remainingLabel" class="text-lg font-semibold text-emerald-700">—</p>
+          <p id="remainingHint" class="text-xs text-slate-500"></p>
+        </div>
 
-      const amountCol = document.createElement('div');
-      amountCol.className = 'md:col-span-4 space-y-2';
-      amountCol.innerHTML = `
-        <label class="text-xs font-medium text-slate-600">Amount</label>
-        <div class="space-y-1">
-          <input data-index="${index}" type="number" min="0" step="0.01" placeholder="0.00" class="amount-input w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" disabled />
-          <p class="warning text-xs text-rose-600 hidden">Amount exceeds remaining balance.</p>
-        </div>`;
+        <div class="md:col-span-4 space-y-2">
+          <label class="text-xs font-medium text-slate-600">Amount</label>
+          <div class="space-y-1">
+            <input id="amountInput" type="number" min="0" step="0.01" placeholder="0.00" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" disabled />
+            <p id="amountWarning" class="text-xs text-rose-600 hidden"></p>
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
 
-      row.appendChild(tradeCol);
-      row.appendChild(balanceCol);
-      row.appendChild(amountCol);
+      const tradeSelect = document.getElementById('tradeSelect');
+      const amountInput = document.getElementById('amountInput');
 
-      return row;
-    }
+      tradeSelect.addEventListener('change', () => {
+        state.selectedTrade = tradeSelect.value;
+        const project = document.getElementById('projectSelect').value;
+        const budget = state.budgets.find((b) => b.project === project && b.trade === state.selectedTrade);
+        const remaining = budget ? budget.currentAvailable : null;
+        state.selectedRemaining = remaining;
 
-    function updateRemainingLabels(selectEl) {
-      const row = selectEl.closest('div.grid');
-      const project = document.getElementById('projectSelect').value;
-      const remainingLabel = row.querySelector('.remaining-label');
-      const amountInput = row.querySelector('.amount-input');
-      const trade = selectEl.value;
+        document.getElementById('remainingLabel').textContent = budget ? formatCurrency(remaining) : '—';
+        document.getElementById('remainingHint').textContent = budget ? `Original: ${formatCurrency(budget.original)}` : '';
 
-      const budget = state.budgets.find((b) => b.project === project && b.trade === trade);
-      remainingLabel.textContent = budget ? formatCurrency(budget.remaining) : '—';
+        if (budget) {
+          amountInput.disabled = false;
+          amountInput.max = remaining;
+          amountInput.value = '';
+          state.selectedAmount = 0;
+        } else {
+          amountInput.disabled = true;
+          amountInput.value = '';
+          state.selectedAmount = 0;
+        }
+        validateAmount();
+        updateSummary();
+      });
 
-      if (budget) {
-        amountInput.removeAttribute('disabled');
-        amountInput.max = budget.remaining;
-      } else {
-        amountInput.setAttribute('disabled', 'true');
-        amountInput.value = '';
-      }
+      amountInput.addEventListener('input', () => {
+        state.selectedAmount = parseMoney(amountInput.value);
+        validateAmount();
+        updateSummary();
+      });
 
-      validateAmount(row, budget?.remaining || 0);
       updateSummary();
     }
 
-    function validateAmount(row, max) {
-      const amountInput = row.querySelector('.amount-input');
-      const warning = row.querySelector('.warning');
-      const value = Number(amountInput.value);
+    function validateAmount() {
+      const warn = document.getElementById('amountWarning');
+      const amountInput = document.getElementById('amountInput');
+      const max = Number(state.selectedRemaining ?? 0);
+      const value = Number(state.selectedAmount ?? 0);
 
-      if (value > max) {
+      warn.classList.add('hidden');
+      warn.textContent = '';
+      amountInput.classList.remove('border-rose-400', 'bg-rose-50');
+
+      if (!state.selectedTrade) return;
+
+      if (value <= 0) {
+        warn.textContent = 'Enter an amount greater than 0.';
+        warn.classList.remove('hidden');
         amountInput.classList.add('border-rose-400', 'bg-rose-50');
-        warning.classList.remove('hidden');
-      } else {
-        amountInput.classList.remove('border-rose-400', 'bg-rose-50');
-        warning.classList.add('hidden');
+        return;
       }
 
-      updateTotals();
-    }
+      if (Number.isFinite(max) && value > max) {
+        warn.textContent = 'Amount exceeds available budget.';
+        warn.classList.remove('hidden');
+        amountInput.classList.add('border-rose-400', 'bg-rose-50');
+        return;
+      }
 
-    function updateTotals() {
-      const row = document.querySelector('#lineItems .grid');
-      const amount = Number(row?.querySelector('.amount-input')?.value) || 0;
-      document.getElementById('totalAmount').textContent = formatCurrency(amount);
-      updateSummary();
-    }
-
-    function getSelectedTradeAndAmount() {
-      const row = document.querySelector('#lineItems .grid');
-      const trade = row?.querySelector('.trade-select')?.value || '';
-      const amount = Number(row?.querySelector('.amount-input')?.value) || 0;
-      return { trade, amount };
-    }
-
-    function updateSummary() {
-      const project = document.getElementById('projectSelect').value || '—';
-      const contractorName = state.contractor?.name || '—';
-      const { trade, amount } = getSelectedTradeAndAmount();
-      const invoice = state.invoiceBase64 ? `Ready (${state.invoiceName || 'uploaded'})` : 'Pending';
-
-      const summaryList = document.getElementById('summaryList');
-      summaryList.innerHTML = `
-        <li>Contractor: ${contractorName}</li>
-        <li>Project: ${project}</li>
-        <li>Trade: ${trade || '—'}</li>
-        <li>Amount: ${formatCurrency(amount)}</li>
-        <li>Invoice: ${invoice}</li>`;
+      document.getElementById('totalAmount').textContent = formatCurrency(value);
     }
 
     function updatePaymentEstimate(selectedDate) {
@@ -468,7 +465,6 @@
     function setupFlatpickr() {
       const today = new Date();
       const minDate = addDays(today, 3);
-
       document.getElementById('bufferMessage').textContent =
         `Earliest work date available is ${minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.`;
 
@@ -476,9 +472,7 @@
         minDate,
         dateFormat: 'm/d/Y',
         disableMobile: true,
-        onChange: (selectedDates) => {
-          updatePaymentEstimate(selectedDates[0]);
-        },
+        onChange: (selectedDates) => updatePaymentEstimate(selectedDates[0]),
       });
     }
 
@@ -486,190 +480,175 @@
       const dropzone = document.getElementById('dropzone');
       const fileInput = document.getElementById('fileInput');
       const fileInfo = document.getElementById('fileInfo');
+      const fileError = document.getElementById('fileError');
 
-      const handleFiles = (files) => {
-        const file = files?.[0];
-        if (!file) return;
-
-        fileInfo.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result;
-          const base64 = typeof dataUrl === 'string' ? dataUrl.split(',')[1] : '';
-          state.invoiceBase64 = base64;
-          state.invoiceName = file.name;
-          updateSummary();
-        };
-        reader.readAsDataURL(file);
+      const setError = (msg) => {
+        if (!msg) { fileError.classList.add('hidden'); fileError.textContent = ''; }
+        else { fileError.textContent = msg; fileError.classList.remove('hidden'); }
       };
+
+      const refreshFileInfo = () => {
+        if (!state.invoiceFiles.length) { fileInfo.textContent = ''; return; }
+        fileInfo.textContent = state.invoiceFiles.map((f) => f.name).join(', ');
+      };
+
+      async function handleFiles(files) {
+        setError('');
+        const selected = Array.from(files || []);
+        if (!selected.length) return;
+        if (selected.length > 5) { setError('Please upload up to 5 files.'); return; }
+
+        const converted = [];
+        for (const file of selected) {
+          const base64 = await readFileAsBase64(file);
+          converted.push({ name: file.name, mimeType: file.type || 'application/octet-stream', base64 });
+        }
+        state.invoiceFiles = converted;
+        refreshFileInfo();
+        updateSummary();
+      }
 
       dropzone.addEventListener('click', () => fileInput.click());
       fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('border-slate-400');
-      });
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-slate-400'); });
       dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-slate-400'));
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('border-slate-400');
-        handleFiles(e.dataTransfer.files);
+      dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('border-slate-400'); handleFiles(e.dataTransfer.files); });
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('File read failed'));
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          const base64 = typeof dataUrl === 'string' ? dataUrl.split(',')[1] : '';
+          resolve(base64);
+        };
+        reader.readAsDataURL(file);
       });
     }
 
-    function statusBadgeClass(status) {
-      if (status === 'Paid') return 'bg-emerald-50 text-emerald-700';
-      if (status === 'Processing') return 'bg-blue-50 text-blue-700';
-      if (status === 'Approved') return 'bg-indigo-50 text-indigo-700';
-      return 'bg-amber-50 text-amber-700';
+    function updateSummary() {
+      const project = document.getElementById('projectSelect').value || '—';
+      const trade = state.selectedTrade || '—';
+      const total = formatCurrency(state.selectedAmount || 0);
+      const files = state.invoiceFiles.length ? `${state.invoiceFiles.length} file(s)` : 'None';
+
+      document.getElementById('summaryList').innerHTML = `
+        <li>Project: ${escapeHtml(project)}</li>
+        <li>Trade: ${escapeHtml(trade)}</li>
+        <li>Total Amount: ${escapeHtml(total)}</li>
+        <li>Files: ${escapeHtml(files)}</li>
+      `;
+      document.getElementById('totalAmount').textContent = total;
     }
 
-    function renderStatusTable(rows) {
+    function statusBadge(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'paid') return 'bg-emerald-50 text-emerald-700';
+      if (s === 'approved') return 'bg-blue-50 text-blue-700';
+      if (s === 'submitted') return 'bg-amber-50 text-amber-700';
+      if (s === 'canceled') return 'bg-slate-100 text-slate-700';
+      return 'bg-slate-100 text-slate-700';
+    }
+
+    async function fetchStatusRows(showLoading=false) {
       const tbody = document.getElementById('statusTable');
-
-      if (!rows || !rows.length) {
-        tbody.innerHTML = `<tr><td class="py-4 text-slate-500" colspan="5">No draws submitted yet.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = rows.map((row) => `
-        <tr class="text-slate-800">
-          <td class="py-3 pr-4">${row.project}</td>
-          <td class="py-3 pr-4">${row.trade}</td>
-          <td class="py-3 pr-4">${formatCurrency(row.amount)}</td>
-          <td class="py-3 pr-4">
-            <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadgeClass(row.status)}">${row.status}</span>
-          </td>
-          <td class="py-3 pr-4 text-slate-500">${row.updated || ''}</td>
-        </tr>
-      `).join('');
+      if (showLoading) tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">Loading…</td></tr>`;
+      const data = await apiGet({ action: 'getDraws', pin: state.pin });
+      state.statusRows = data?.rows || [];
+      renderStatusTable();
     }
 
-    function setupSearchFilter() {
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase().trim();
-        if (!term) return renderStatusTable(state.statusRows);
+    function renderStatusTable() {
+      const term = (document.getElementById('searchInput').value || '').toLowerCase();
+      const rows = state.statusRows.filter((r) =>
+        [r.project, r.trade, r.status].some((v) => (v || '').toLowerCase().includes(term))
+      );
 
-        const filtered = state.statusRows.filter((row) =>
-          [row.project, row.trade, row.status].some((v) => String(v).toLowerCase().includes(term))
-        );
-        renderStatusTable(filtered);
+      const tbody = document.getElementById('statusTable');
+      if (!rows.length) { tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">No results.</td></tr>`; return; }
+
+      tbody.innerHTML = rows.map((row) => {
+        const canCancel = (row.status || '').toLowerCase() === 'submitted';
+        const actionHtml = canCancel
+          ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-request-id="${escapeHtml(row.requestId)}" title="Cancel">✕</button>`
+          : `<span class="text-slate-300">—</span>`;
+
+        return `
+          <tr class="text-slate-800">
+            <td class="py-3 pr-4">${escapeHtml(row.project || '')}</td>
+            <td class="py-3 pr-4">${escapeHtml(row.trade || '')}</td>
+            <td class="py-3 pr-4">${escapeHtml(formatCurrency(row.amount || 0))}</td>
+            <td class="py-3 pr-4">
+              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadge(row.status)}">${escapeHtml(row.status || '')}</span>
+            </td>
+            <td class="py-3 pr-4 text-slate-500">${escapeHtml(row.statusUpdatedAt || row.submittedAt || '')}</td>
+            <td class="py-3 pr-4 text-right">${actionHtml}</td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.cancel-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.pendingCancelRequestId = btn.getAttribute('data-request-id');
+          showModal('cancelModal');
+        });
       });
     }
 
-    function hidePinModal() {
-      document.getElementById('pinModal').classList.add('hidden');
-    }
+    function setupStatusEvents() {
+      document.getElementById('searchInput').addEventListener('input', renderStatusTable);
+      document.getElementById('refreshStatusBtn').addEventListener('click', () => fetchStatusRows(true));
 
-    function setupPinModal() {
-      const pinForm = document.getElementById('pinForm');
-      const pinInput = document.getElementById('pinInput');
-      const pinError = document.getElementById('pinError');
-      const pinLoading = document.getElementById('pinLoading');
-      const submitButton = document.getElementById('pinSubmit');
+      document.getElementById('cancelKeepBtn').addEventListener('click', () => {
+        state.pendingCancelRequestId = null;
+        hideModal('cancelModal');
+      });
 
-      pinInput.focus();
+      document.getElementById('cancelConfirmBtn').addEventListener('click', async () => {
+        const requestId = state.pendingCancelRequestId;
+        if (!requestId) return;
+        hideModal('cancelModal');
 
-      pinForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const pin = pinInput.value.trim();
-        if (!/^[0-9]{4}$/.test(pin)) {
-          pinError.textContent = 'Please enter a 4-digit PIN.';
-          pinError.classList.remove('hidden');
-          return;
-        }
-
-        pinError.classList.add('hidden');
-        pinLoading.classList.remove('hidden');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Verifying...';
-
+        const payload = { action: 'cancelDraw', pin: state.pin, requestId };
         try {
-          const contractor = await verifyContractor(pin);
-
-          if (!contractor?.name) {
-            pinError.textContent = 'That PIN was not recognized. Please try again.';
-            pinError.classList.remove('hidden');
-            return;
-          }
-
-          state.pin = pin;
-          state.contractor = { name: contractor.name };
-
-          document.getElementById('headerContractorName').textContent = contractor.name;
-
-          await loadBudgetsAndStatus();
-
-          hidePinModal();
-
-        } catch (err) {
-          pinError.textContent = 'Could not reach the server. Please try again.';
-          pinError.classList.remove('hidden');
+          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+          await fetchStatusRows(true);
+        } catch (e) {
+          await fetchStatusRows(true);
         } finally {
-          pinLoading.classList.add('hidden');
-          submitButton.disabled = false;
-          submitButton.textContent = 'Continue';
-        }
-      });
-    }
-
-    function setupLineItemEvents() {
-      document.getElementById('projectSelect').addEventListener('change', () => {
-        renderLineItems();
-        updateSummary();
-      });
-
-      document.getElementById('lineItems').addEventListener('change', (e) => {
-        if (e.target.classList.contains('trade-select')) {
-          updateRemainingLabels(e.target);
-        }
-      });
-
-      document.getElementById('lineItems').addEventListener('input', (e) => {
-        if (e.target.classList.contains('amount-input')) {
-          const row = e.target.closest('.grid');
-          const tradeSelect = row.querySelector('.trade-select');
-          const project = document.getElementById('projectSelect').value;
-          const budget = state.budgets.find((b) => b.project === project && b.trade === tradeSelect.value);
-          validateAmount(row, budget?.remaining || 0);
+          state.pendingCancelRequestId = null;
         }
       });
     }
 
     async function submitForm(event) {
       event.preventDefault();
-
       const msg = document.getElementById('submitMessage');
       msg.textContent = '';
 
-      if (!state.pin || !state.contractor?.name) {
-        msg.textContent = 'Please verify your PIN first.';
-        return;
-      }
-
       const project = document.getElementById('projectSelect').value;
       const workDate = document.getElementById('workDate').value;
-      const estPayText = document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', '').trim();
+      const trade = state.selectedTrade;
+      const amount = Number(state.selectedAmount || 0);
 
-      const { trade, amount } = getSelectedTradeAndAmount();
+      if (!project || !workDate || !trade || amount <= 0) { msg.textContent = 'Please complete project, work date, trade, and a valid amount.'; return; }
+      if (!state.invoiceFiles.length) { msg.textContent = 'Please upload at least one file (invoice or photo).'; return; }
 
-      if (!project) return (msg.textContent = 'Please select a project.');
-      if (!trade) return (msg.textContent = 'Please select a trade.');
-      if (!amount || amount <= 0) return (msg.textContent = 'Please enter a valid amount.');
-      if (!workDate) return (msg.textContent = 'Please select a work date.');
+      const max = Number(state.selectedRemaining ?? Infinity);
+      if (Number.isFinite(max) && amount > max) { msg.textContent = 'Amount exceeds available budget.'; return; }
 
       const payload = {
-        PIN: state.pin,
-        ContractorName: state.contractor.name,
+        action: 'submitDraw',
+        pin: state.pin,
         Project: project,
         WorkDate: workDate,
-        EstimatedPayment: estPayText,
-        InvoiceFile: state.invoiceBase64,
-        InvoiceFileName: state.invoiceName,
-        LineItems: [{ trade, amount }],
+        EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
+        Trade: trade,
+        Amount: amount,
+        Files: state.invoiceFiles,
       };
 
       const submitBtn = document.getElementById('submitBtn');
@@ -677,41 +656,69 @@
       submitBtn.textContent = 'Submitting...';
 
       try {
-        // ✅ Works from GitHub Pages. We cannot read the response.
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-        });
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
 
-        showOkModal('Submitted', 'Your draw request was submitted. Tap OK to continue.');
+        document.getElementById('successText').innerHTML = `Your draw request was submitted.<br/><span class="text-slate-500">You can submit another trade now.</span>`;
+        showModal('successModal');
 
-        // Refresh status list (best effort)
-        try {
-          const stat = await apiGet(`${SCRIPT_URL}?action=status&pin=${encodeURIComponent(state.pin)}`);
-          state.statusRows = (stat?.ok && Array.isArray(stat.rows)) ? stat.rows : state.statusRows;
-          renderStatusTable(state.statusRows);
-        } catch (_) {}
+        resetForNextTrade();
+        await fetchStatusRows(true);
 
       } catch (error) {
-        showOkModal('Error', 'There was an issue submitting your request. Please try again.');
+        msg.textContent = 'There was an issue submitting your request. Please try again.';
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Draw Request';
       }
     }
 
+    function resetForNextTrade() {
+      state.selectedTrade = '';
+      state.selectedAmount = 0;
+      state.selectedRemaining = null;
+      state.invoiceFiles = [];
+
+      document.getElementById('fileInfo').textContent = '';
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.value = '';
+
+      renderLineItemRow();
+      updateSummary();
+    }
+
+    function setupSuccessModal() {
+      document.getElementById('successOkBtn').addEventListener('click', () => hideModal('successModal'));
+    }
+
+    function setupProjectEvents() {
+      document.getElementById('projectSelect').addEventListener('change', () => {
+        state.selectedTrade = '';
+        state.selectedAmount = 0;
+        state.selectedRemaining = null;
+        renderLineItemRow();
+        updateSummary();
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
     function init() {
       setupFlatpickr();
       setupFileUpload();
-      setupLineItemEvents();
       setupPinModal();
-      setupSearchFilter();
-      updateSummary();
+      setupStatusEvents();
+      setupSuccessModal();
+      setupProjectEvents();
       document.getElementById('drawForm').addEventListener('submit', submitForm);
+      updateSummary();
     }
-
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
