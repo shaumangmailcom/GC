@@ -324,17 +324,20 @@
       });
     }
 
-    async function fetchBudgetsAndProjects() {
-      const data = await apiGet({ action: 'getBudgets', pin: state.pin });
-      state.budgets = (data?.budgets || []).map((b) => ({
-        project: b.project,
-        trade: b.trade,
-        original: Number(b.original || 0),
-        currentAvailable: Number(b.currentAvailable ?? b.available ?? 0),
-      }));
-      populateProjects();
-      renderLineItemRow();
-    }
+   async function fetchBudgetsAndProjects() {
+  const data = await apiGet({ action: 'getBudgets', pin: state.pin });
+
+  // ✅ match what Code.gs actually returns: {project, trade, original, remaining}
+  state.budgets = (data?.budgets || []).map((b) => ({
+    project: b.project,
+    trade: b.trade,
+    original: Number(b.original || 0),
+    currentAvailable: Number(b.remaining ?? 0), // ✅ THIS LINE FIXES THE "0" BUG
+  }));
+
+  populateProjects();
+  renderLineItemRow();
+}
 
     function populateProjects() {
       const select = document.getElementById('projectSelect');
@@ -557,7 +560,8 @@
       const tbody = document.getElementById('statusTable');
       if (showLoading) tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">Loading…</td></tr>`;
       const data = await apiGet({ action: 'getDraws', pin: state.pin });
-      state.statusRows = data?.rows || [];
+    state.statusRows = data?.draws || [];
+
       renderStatusTable();
     }
 
@@ -573,7 +577,7 @@
       tbody.innerHTML = rows.map((row) => {
         const canCancel = (row.status || '').toLowerCase() === 'submitted';
         const actionHtml = canCancel
-          ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-request-id="${escapeHtml(row.requestId)}" title="Cancel">✕</button>`
+          ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-request-id="${escapeHtml(row.drawId)}" title="Cancel">✕</button>`
           : `<span class="text-slate-300">—</span>`;
 
         return `
@@ -608,11 +612,11 @@
       });
 
       document.getElementById('cancelConfirmBtn').addEventListener('click', async () => {
-        const requestId = state.pendingCancelRequestId;
+        const drawId = state.pendingCancelRequestId;
         if (!requestId) return;
         hideModal('cancelModal');
 
-        const payload = { action: 'cancelDraw', pin: state.pin, requestId };
+        const payload = { action: 'cancelDraw', pin: state.pin, drawId };
         try {
           await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
           await fetchStatusRows(true);
@@ -641,15 +645,15 @@
       if (Number.isFinite(max) && amount > max) { msg.textContent = 'Amount exceeds available budget.'; return; }
 
       const payload = {
-        action: 'submitDraw',
-        pin: state.pin,
-        Project: project,
-        WorkDate: workDate,
-        EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
-        Trade: trade,
-        Amount: amount,
-        Files: state.invoiceFiles,
-      };
+  action: 'submitDraw',
+  pin: state.pin,
+  Project: project,
+  WorkDate: workDate,
+  EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
+  LineItems: [{ trade, amount }],     // ✅ match Code.gs
+  files: state.invoiceFiles,          // ✅ lowercase "files"
+};
+
 
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
