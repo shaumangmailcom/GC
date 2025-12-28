@@ -6,9 +6,6 @@
   <title>Contractor Draw Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .glass-card { box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12); }
-  </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen">
@@ -17,9 +14,7 @@
     <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure Access</p>
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Enter Contractor PIN</h2>
-      <p class="text-sm text-slate-600 mt-2">
-        Use your 4-digit PIN so we can match your contractor profile automatically.
-      </p>
+      <p class="text-sm text-slate-600 mt-2">Use your 4-digit PIN.</p>
 
       <form id="pinForm" class="mt-5 space-y-4">
         <div class="space-y-2">
@@ -37,11 +32,11 @@
           <p id="pinError" class="text-xs text-rose-600 hidden"></p>
         </div>
 
-        <div class="flex justify-end gap-3">
+        <div class="flex justify-end">
           <button
             type="submit"
-            class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition"
             id="pinSubmit"
+            class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition disabled:opacity-60"
           >
             Continue
           </button>
@@ -57,24 +52,24 @@
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Request Submitted</h2>
       <p id="successText" class="text-sm text-slate-600 mt-2">Your draw request was submitted.</p>
       <div class="mt-6 flex justify-end">
-        <button id="successOkBtn" class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition">
+        <button id="successOkBtn" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">
           OK
         </button>
       </div>
     </div>
   </div>
 
-  <!-- CANCEL CONFIRM MODAL -->
+  <!-- CANCEL MODAL -->
   <div id="cancelModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
       <p class="text-xs uppercase tracking-[0.2em] text-amber-600">Confirm</p>
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Cancel this draw?</h2>
-      <p id="cancelText" class="text-sm text-slate-600 mt-2">This will mark the draw as <b>Canceled</b>. It won’t be deleted.</p>
+      <p class="text-sm text-slate-600 mt-2">This will mark it as <b>Canceled</b>.</p>
       <div class="mt-6 flex justify-end gap-3">
-        <button id="cancelKeepBtn" class="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition">
+        <button id="cancelKeepBtn" class="bg-white border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition">
           Keep
         </button>
-        <button id="cancelConfirmBtn" class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition">
+        <button id="cancelConfirmBtn" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">
           Cancel Draw
         </button>
       </div>
@@ -84,42 +79,25 @@
   <div class="max-w-6xl mx-auto px-4 py-10">
     <header class="mb-8 text-center">
       <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Contractor Draw Portal</p>
-
-      <!-- Headline: contractor name only -->
-      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">
-        —
-      </h1>
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mt-2">Draw Request</p>
-
+      <h1 id="headerContractorName" class="text-3xl md:text-4xl font-semibold text-slate-900 mt-2">—</h1>
       <p class="text-slate-600 mt-3 max-w-3xl mx-auto">
-        Select your project, add a trade line item, upload invoices/photos, and see your estimated payment timeline.
+        Select project, choose trade, enter amount, upload files, submit.
       </p>
     </header>
 
-    <main class="bg-white glass-card rounded-2xl p-6 md:p-8">
+    <main class="bg-white rounded-2xl p-6 md:p-8 shadow-xl">
       <form id="drawForm" class="space-y-8">
         <section class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Project</label>
-            <select
-              id="projectSelect"
-              class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
-              required
-            >
+            <select id="projectSelect" class="w-full rounded-xl border border-slate-200 px-4 py-3" required>
               <option value="" disabled selected>Select a project</option>
             </select>
-            <p class="text-xs text-slate-500">Only projects assigned to you will appear.</p>
           </div>
 
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Date of Work</label>
-            <input
-              id="workDate"
-              type="text"
-              placeholder="MM/DD/YYYY"
-              class="w-full rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
-              required
-            />
+            <input id="workDate" type="text" placeholder="MM/DD/YYYY" class="w-full rounded-xl border border-slate-200 px-4 py-3" required />
             <p id="bufferMessage" class="text-xs text-amber-600"></p>
           </div>
         </section>
@@ -127,10 +105,7 @@
         <section class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Estimated Payment Date</label>
-            <div
-              id="estimatedPayment"
-              class="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-slate-800 bg-slate-50"
-            >
+            <div id="estimatedPayment" class="rounded-xl border border-dashed border-slate-200 px-4 py-3 bg-slate-50">
               Select a work date to calculate.
             </div>
           </div>
@@ -142,26 +117,23 @@
               <div class="text-sm text-slate-600">Total Draw Request</div>
               <div id="totalAmount" class="text-2xl font-semibold text-slate-900">$0.00</div>
             </div>
-            <p class="text-xs text-slate-500">Each draw is limited to a single trade.</p>
+            <p class="text-xs text-slate-500">One trade per draw.</p>
           </div>
         </section>
 
         <section class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2">
             <label class="block text-sm font-medium text-slate-700">Upload files (up to 5)</label>
-            <div
-              id="dropzone"
-              class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50/60 cursor-pointer"
-            >
+            <div id="dropzone" class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50 cursor-pointer">
               <p class="text-slate-800 font-medium">Drag & drop PDF/images</p>
-              <p class="text-xs text-slate-500 mt-2">Invoices + photos are supported.</p>
+              <p class="text-xs text-slate-500 mt-2">Invoices + photos supported.</p>
               <input id="fileInput" type="file" accept="application/pdf,image/*" multiple class="hidden" />
               <div id="fileInfo" class="text-sm text-slate-700 mt-3"></div>
             </div>
             <p id="fileError" class="text-xs text-rose-600 hidden"></p>
           </div>
 
-          <div class="space-y-3 p-4 rounded-xl bg-slate-50/60 border border-slate-100">
+          <div class="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
             <h3 class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
             <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
               <li>Project: —</li>
@@ -170,11 +142,8 @@
               <li>Files: None</li>
             </ul>
 
-            <button
-              id="submitBtn"
-              type="submit"
-              class="w-full mt-2 inline-flex justify-center items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/15 hover:bg-slate-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <button id="submitBtn" type="submit"
+              class="w-full bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold hover:bg-slate-800 transition disabled:opacity-60">
               Submit Draw Request
             </button>
 
@@ -184,26 +153,17 @@
       </form>
     </main>
 
-    <section class="mt-10 bg-white glass-card rounded-2xl p-6 md:p-8">
+    <section class="mt-10 bg-white rounded-2xl p-6 md:p-8 shadow-xl">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
         <div>
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status Tracking</p>
           <h2 class="text-xl font-semibold text-slate-900">Track My Payments</h2>
-          <p class="text-sm text-slate-600 mt-1">You can cancel a submitted request from here.</p>
         </div>
         <div class="flex gap-3 w-full md:w-auto">
-          <input
-            id="searchInput"
-            type="text"
-            placeholder="Search by project, trade, or status"
-            class="flex-1 md:w-80 rounded-xl border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/50"
-          />
-          <button
-            id="refreshStatusBtn"
-            type="button"
-            class="inline-flex items-center justify-center bg-white border border-slate-200 text-slate-900 px-4 py-3 rounded-xl font-semibold hover:bg-slate-50 transition"
-            title="Refresh"
-          >
+          <input id="searchInput" type="text" placeholder="Search project/trade/status"
+            class="flex-1 md:w-80 rounded-xl border border-slate-200 px-4 py-3" />
+          <button id="refreshStatusBtn" type="button"
+            class="bg-white border border-slate-200 text-slate-900 px-4 py-3 rounded-xl font-semibold hover:bg-slate-50 transition">
             Refresh
           </button>
         </div>
@@ -229,479 +189,29 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHH6DEgjr-jexZGuqDk9kpzIBL4SeDAGzS62KcIS1Lehy8nnX3_fWfWv4yKYhccZs9Kg/exec';
+    // IMPORTANT: paste YOUR deployed Apps Script Web App URL:
+    const SCRIPT_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
 
     const state = {
       pin: '',
       contractor: null,
-      budgets: [],
-      invoiceFiles: [],
+      budgets: [],           // [{project, trade, original, remaining}]
+      invoiceFiles: [],      // [{name,mimeType,base64}]
       selectedTrade: '',
       selectedAmount: 0,
       selectedRemaining: null,
       statusRows: [],
-      pendingCancelRequestId: null,
+      pendingCancelDrawId: null,
+      lastEstimatedPayment: '', // ✅ ensures we send a clean date, not UI text
     };
 
-    function formatCurrency(value) {
-      const number = Number(value) || 0;
-      return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    }
-    function parseMoney(value) { const n = Number(value); return Number.isFinite(n) ? n : 0; }
-    function addDays(date, days) { const copy = new Date(date); copy.setDate(copy.getDate() + days); return copy; }
-    function nextThursday(date) {
-      const result = new Date(date);
-      const day = result.getDay();
-      const delta = (11 - day) % 7 || 7;
-      result.setDate(result.getDate() + delta);
-      return result;
-    }
-    function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
+    const $ = (id) => document.getElementById(id);
 
-    async function apiGet(params) {
-      const url = new URL(SCRIPT_URL);
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      const resp = await fetch(url.toString(), { method: 'GET' });
-      if (!resp.ok) throw new Error('Network error');
-      return resp.json();
-    }
-
-    async function verifyContractor(pin) {
-      const data = await apiGet({ action: 'verifyPin', pin });
-      if (data && data.ok && data.contractor) return data.contractor;
-      return null;
-    }
-
-    function setContractor(contractor) {
-      state.contractor = contractor;
-      document.getElementById('headerContractorName').textContent = contractor.name || '—';
-      updateSummary();
-    }
-
-    function setupPinModal() {
-      const pinForm = document.getElementById('pinForm');
-      const pinInput = document.getElementById('pinInput');
-      const pinError = document.getElementById('pinError');
-      const submitButton = document.getElementById('pinSubmit');
-
-      pinInput.focus();
-
-      pinForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pin = pinInput.value.trim();
-
-        if (!/^[0-9]{4}$/.test(pin)) {
-          pinError.textContent = 'Please enter a 4-digit PIN.';
-          pinError.classList.remove('hidden');
-          return;
-        }
-
-        pinError.classList.add('hidden');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Verifying...';
-
-        try {
-          const contractor = await verifyContractor(pin);
-          if (contractor?.name) {
-            state.pin = pin;
-            setContractor(contractor);
-            hideModal('pinModal');
-
-            await fetchBudgetsAndProjects();
-            await fetchStatusRows(true);
-          } else {
-            pinError.textContent = 'That PIN was not recognized. Please try again.';
-            pinError.classList.remove('hidden');
-          }
-        } catch (err) {
-          pinError.textContent = 'Could not verify PIN right now. Please try again.';
-          pinError.classList.remove('hidden');
-        } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = 'Continue';
-        }
-      });
-    }
-
-   async function fetchBudgetsAndProjects() {
-  const data = await apiGet({ action: 'getBudgets', pin: state.pin });
-
-  // ✅ match what Code.gs actually returns: {project, trade, original, remaining}
-  state.budgets = (data?.budgets || []).map((b) => ({
-    project: b.project,
-    trade: b.trade,
-    original: Number(b.original || 0),
-    currentAvailable: Number(b.remaining ?? 0), // ✅ THIS LINE FIXES THE "0" BUG
-  }));
-
-  populateProjects();
-  renderLineItemRow();
-}
-
-    function populateProjects() {
-      const select = document.getElementById('projectSelect');
-      select.innerHTML = '<option value="" disabled selected>Select a project</option>';
-      const projects = [...new Set(state.budgets.map((b) => b.project))].sort();
-      projects.forEach((project) => {
-        const option = document.createElement('option');
-        option.value = project;
-        option.textContent = project;
-        select.appendChild(option);
-      });
-    }
-
-    function tradesForProject(project) {
-      return state.budgets.filter((b) => b.project === project).sort((a, b) => a.trade.localeCompare(b.trade));
-    }
-
-    function renderLineItemRow() {
-      const container = document.getElementById('lineItems');
-      container.innerHTML = '';
-
-      const project = document.getElementById('projectSelect').value;
-      const trades = project ? tradesForProject(project) : [];
-
-      const row = document.createElement('div');
-      row.className = 'grid md:grid-cols-12 gap-4 items-start bg-white rounded-xl border border-slate-100 p-4 shadow-sm';
-
-      row.innerHTML = `
-        <div class="md:col-span-5 space-y-2">
-          <label class="text-xs font-medium text-slate-600">Trade</label>
-          <select id="tradeSelect" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" ${project ? '' : 'disabled'} required>
-            <option value="" disabled selected>${project ? 'Select trade' : 'Select project first'}</option>
-            ${trades.map((t) => `<option value="${escapeHtml(t.trade)}">${escapeHtml(t.trade)}</option>`).join('')}
-          </select>
-        </div>
-
-        <div class="md:col-span-3 space-y-1">
-          <p class="text-xs font-medium text-slate-600">Budget Available</p>
-          <p id="remainingLabel" class="text-lg font-semibold text-emerald-700">—</p>
-          <p id="remainingHint" class="text-xs text-slate-500"></p>
-        </div>
-
-        <div class="md:col-span-4 space-y-2">
-          <label class="text-xs font-medium text-slate-600">Amount</label>
-          <div class="space-y-1">
-            <input id="amountInput" type="number" min="0" step="0.01" placeholder="0.00" class="w-full rounded-lg border border-slate-200 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/50" disabled />
-            <p id="amountWarning" class="text-xs text-rose-600 hidden"></p>
-          </div>
-        </div>
-      `;
-      container.appendChild(row);
-
-      const tradeSelect = document.getElementById('tradeSelect');
-      const amountInput = document.getElementById('amountInput');
-
-      tradeSelect.addEventListener('change', () => {
-        state.selectedTrade = tradeSelect.value;
-        const project = document.getElementById('projectSelect').value;
-        const budget = state.budgets.find((b) => b.project === project && b.trade === state.selectedTrade);
-        const remaining = budget ? budget.currentAvailable : null;
-        state.selectedRemaining = remaining;
-
-        document.getElementById('remainingLabel').textContent = budget ? formatCurrency(remaining) : '—';
-        document.getElementById('remainingHint').textContent = budget ? `Original: ${formatCurrency(budget.original)}` : '';
-
-        if (budget) {
-          amountInput.disabled = false;
-          amountInput.max = remaining;
-          amountInput.value = '';
-          state.selectedAmount = 0;
-        } else {
-          amountInput.disabled = true;
-          amountInput.value = '';
-          state.selectedAmount = 0;
-        }
-        validateAmount();
-        updateSummary();
-      });
-
-      amountInput.addEventListener('input', () => {
-        state.selectedAmount = parseMoney(amountInput.value);
-        validateAmount();
-        updateSummary();
-      });
-
-      updateSummary();
-    }
-
-    function validateAmount() {
-      const warn = document.getElementById('amountWarning');
-      const amountInput = document.getElementById('amountInput');
-      const max = Number(state.selectedRemaining ?? 0);
-      const value = Number(state.selectedAmount ?? 0);
-
-      warn.classList.add('hidden');
-      warn.textContent = '';
-      amountInput.classList.remove('border-rose-400', 'bg-rose-50');
-
-      if (!state.selectedTrade) return;
-
-      if (value <= 0) {
-        warn.textContent = 'Enter an amount greater than 0.';
-        warn.classList.remove('hidden');
-        amountInput.classList.add('border-rose-400', 'bg-rose-50');
-        return;
+    // ✅ small but important: URL must be set
+    function assertScriptUrl() {
+      if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE_YOUR_WEB_APP_URL_HERE')) {
+        console.error('SCRIPT_URL is not set.');
       }
-
-      if (Number.isFinite(max) && value > max) {
-        warn.textContent = 'Amount exceeds available budget.';
-        warn.classList.remove('hidden');
-        amountInput.classList.add('border-rose-400', 'bg-rose-50');
-        return;
-      }
-
-      document.getElementById('totalAmount').textContent = formatCurrency(value);
-    }
-
-    function updatePaymentEstimate(selectedDate) {
-      if (!selectedDate) {
-        document.getElementById('estimatedPayment').textContent = 'Select a work date to calculate.';
-        return;
-      }
-      const next = nextThursday(selectedDate);
-      const formatted = next.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
-      document.getElementById('estimatedPayment').textContent = `Estimated Payment Date: ${formatted}`;
-    }
-
-    function setupFlatpickr() {
-      const today = new Date();
-      const minDate = addDays(today, 3);
-      document.getElementById('bufferMessage').textContent =
-        `Earliest work date available is ${minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.`;
-
-      flatpickr('#workDate', {
-        minDate,
-        dateFormat: 'm/d/Y',
-        disableMobile: true,
-        onChange: (selectedDates) => updatePaymentEstimate(selectedDates[0]),
-      });
-    }
-
-    function setupFileUpload() {
-      const dropzone = document.getElementById('dropzone');
-      const fileInput = document.getElementById('fileInput');
-      const fileInfo = document.getElementById('fileInfo');
-      const fileError = document.getElementById('fileError');
-
-      const setError = (msg) => {
-        if (!msg) { fileError.classList.add('hidden'); fileError.textContent = ''; }
-        else { fileError.textContent = msg; fileError.classList.remove('hidden'); }
-      };
-
-      const refreshFileInfo = () => {
-        if (!state.invoiceFiles.length) { fileInfo.textContent = ''; return; }
-        fileInfo.textContent = state.invoiceFiles.map((f) => f.name).join(', ');
-      };
-
-      async function handleFiles(files) {
-        setError('');
-        const selected = Array.from(files || []);
-        if (!selected.length) return;
-        if (selected.length > 5) { setError('Please upload up to 5 files.'); return; }
-
-        const converted = [];
-        for (const file of selected) {
-          const base64 = await readFileAsBase64(file);
-          converted.push({ name: file.name, mimeType: file.type || 'application/octet-stream', base64 });
-        }
-        state.invoiceFiles = converted;
-        refreshFileInfo();
-        updateSummary();
-      }
-
-      dropzone.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-slate-400'); });
-      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-slate-400'));
-      dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('border-slate-400'); handleFiles(e.dataTransfer.files); });
-    }
-
-    function readFileAsBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error('File read failed'));
-        reader.onload = () => {
-          const dataUrl = reader.result;
-          const base64 = typeof dataUrl === 'string' ? dataUrl.split(',')[1] : '';
-          resolve(base64);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function updateSummary() {
-      const project = document.getElementById('projectSelect').value || '—';
-      const trade = state.selectedTrade || '—';
-      const total = formatCurrency(state.selectedAmount || 0);
-      const files = state.invoiceFiles.length ? `${state.invoiceFiles.length} file(s)` : 'None';
-
-      document.getElementById('summaryList').innerHTML = `
-        <li>Project: ${escapeHtml(project)}</li>
-        <li>Trade: ${escapeHtml(trade)}</li>
-        <li>Total Amount: ${escapeHtml(total)}</li>
-        <li>Files: ${escapeHtml(files)}</li>
-      `;
-      document.getElementById('totalAmount').textContent = total;
-    }
-
-    function statusBadge(status) {
-      const s = (status || '').toLowerCase();
-      if (s === 'paid') return 'bg-emerald-50 text-emerald-700';
-      if (s === 'approved') return 'bg-blue-50 text-blue-700';
-      if (s === 'submitted') return 'bg-amber-50 text-amber-700';
-      if (s === 'canceled') return 'bg-slate-100 text-slate-700';
-      return 'bg-slate-100 text-slate-700';
-    }
-
-    async function fetchStatusRows(showLoading=false) {
-      const tbody = document.getElementById('statusTable');
-      if (showLoading) tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">Loading…</td></tr>`;
-      const data = await apiGet({ action: 'getDraws', pin: state.pin });
-    state.statusRows = data?.draws || [];
-
-      renderStatusTable();
-    }
-
-    function renderStatusTable() {
-      const term = (document.getElementById('searchInput').value || '').toLowerCase();
-      const rows = state.statusRows.filter((r) =>
-        [r.project, r.trade, r.status].some((v) => (v || '').toLowerCase().includes(term))
-      );
-
-      const tbody = document.getElementById('statusTable');
-      if (!rows.length) { tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">No results.</td></tr>`; return; }
-
-      tbody.innerHTML = rows.map((row) => {
-        const canCancel = (row.status || '').toLowerCase() === 'submitted';
-        const actionHtml = canCancel
-          ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-request-id="${escapeHtml(row.drawId)}" title="Cancel">✕</button>`
-          : `<span class="text-slate-300">—</span>`;
-
-        return `
-          <tr class="text-slate-800">
-            <td class="py-3 pr-4">${escapeHtml(row.project || '')}</td>
-            <td class="py-3 pr-4">${escapeHtml(row.trade || '')}</td>
-            <td class="py-3 pr-4">${escapeHtml(formatCurrency(row.amount || 0))}</td>
-            <td class="py-3 pr-4">
-              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadge(row.status)}">${escapeHtml(row.status || '')}</span>
-            </td>
-            <td class="py-3 pr-4 text-slate-500">${escapeHtml(row.statusUpdatedAt || row.submittedAt || '')}</td>
-            <td class="py-3 pr-4 text-right">${actionHtml}</td>
-          </tr>
-        `;
-      }).join('');
-
-      tbody.querySelectorAll('.cancel-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          state.pendingCancelRequestId = btn.getAttribute('data-request-id');
-          showModal('cancelModal');
-        });
-      });
-    }
-
-    function setupStatusEvents() {
-      document.getElementById('searchInput').addEventListener('input', renderStatusTable);
-      document.getElementById('refreshStatusBtn').addEventListener('click', () => fetchStatusRows(true));
-
-      document.getElementById('cancelKeepBtn').addEventListener('click', () => {
-        state.pendingCancelRequestId = null;
-        hideModal('cancelModal');
-      });
-
-      document.getElementById('cancelConfirmBtn').addEventListener('click', async () => {
-        const drawId = state.pendingCancelRequestId;
-        if (!requestId) return;
-        hideModal('cancelModal');
-
-        const payload = { action: 'cancelDraw', pin: state.pin, drawId };
-        try {
-          await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-          await fetchStatusRows(true);
-        } catch (e) {
-          await fetchStatusRows(true);
-        } finally {
-          state.pendingCancelRequestId = null;
-        }
-      });
-    }
-
-    async function submitForm(event) {
-      event.preventDefault();
-      const msg = document.getElementById('submitMessage');
-      msg.textContent = '';
-
-      const project = document.getElementById('projectSelect').value;
-      const workDate = document.getElementById('workDate').value;
-      const trade = state.selectedTrade;
-      const amount = Number(state.selectedAmount || 0);
-
-      if (!project || !workDate || !trade || amount <= 0) { msg.textContent = 'Please complete project, work date, trade, and a valid amount.'; return; }
-      if (!state.invoiceFiles.length) { msg.textContent = 'Please upload at least one file (invoice or photo).'; return; }
-
-      const max = Number(state.selectedRemaining ?? Infinity);
-      if (Number.isFinite(max) && amount > max) { msg.textContent = 'Amount exceeds available budget.'; return; }
-
-      const payload = {
-  action: 'submitDraw',
-  pin: state.pin,
-  Project: project,
-  WorkDate: workDate,
-  EstimatedPayment: document.getElementById('estimatedPayment').textContent.replace('Estimated Payment Date: ', ''),
-  LineItems: [{ trade, amount }],     // ✅ match Code.gs
-  files: state.invoiceFiles,          // ✅ lowercase "files"
-};
-
-
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-
-      try {
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-
-        document.getElementById('successText').innerHTML = `Your draw request was submitted.<br/><span class="text-slate-500">You can submit another trade now.</span>`;
-        showModal('successModal');
-
-        resetForNextTrade();
-        await fetchStatusRows(true);
-
-      } catch (error) {
-        msg.textContent = 'There was an issue submitting your request. Please try again.';
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Draw Request';
-      }
-    }
-
-    function resetForNextTrade() {
-      state.selectedTrade = '';
-      state.selectedAmount = 0;
-      state.selectedRemaining = null;
-      state.invoiceFiles = [];
-
-      document.getElementById('fileInfo').textContent = '';
-      const fileInput = document.getElementById('fileInput');
-      if (fileInput) fileInput.value = '';
-
-      renderLineItemRow();
-      updateSummary();
-    }
-
-    function setupSuccessModal() {
-      document.getElementById('successOkBtn').addEventListener('click', () => hideModal('successModal'));
-    }
-
-    function setupProjectEvents() {
-      document.getElementById('projectSelect').addEventListener('change', () => {
-        state.selectedTrade = '';
-        state.selectedAmount = 0;
-        state.selectedRemaining = null;
-        renderLineItemRow();
-        updateSummary();
-      });
     }
 
     function escapeHtml(str) {
@@ -713,16 +223,484 @@
         .replaceAll("'", '&#039;');
     }
 
-    function init() {
-      setupFlatpickr();
-      setupFileUpload();
-      setupPinModal();
-      setupStatusEvents();
-      setupSuccessModal();
-      setupProjectEvents();
-      document.getElementById('drawForm').addEventListener('submit', submitForm);
+    function formatCurrency(value) {
+      const n = Number(value) || 0;
+      return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    }
+
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function nextThursday(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const delta = (11 - day) % 7 || 7; // next Thu
+      d.setDate(d.getDate() + delta);
+      return d;
+    }
+
+    function showModal(id) { $(id).classList.remove('hidden'); }
+    function hideModal(id) { $(id).classList.add('hidden'); }
+
+    async function apiGet(params) {
+      const url = new URL(SCRIPT_URL);
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      const r = await fetch(url.toString(), { method: 'GET' });
+      if (!r.ok) throw new Error('Network error');
+      return r.json();
+    }
+
+    async function apiPost(payload) {
+      // Apps Script Web App pattern: use text/plain + no-cors
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    async function verifyPin(pin) {
+      const data = await apiGet({ action: 'verifyPin', pin });
+      return data?.ok ? data.contractor : null;
+    }
+
+    async function loadBudgets() {
+      const data = await apiGet({ action: 'getBudgets', pin: state.pin });
+      state.budgets = (data?.budgets || []).map(b => ({
+        project: b.project,
+        trade: b.trade,
+        original: Number(b.original || 0),
+        remaining: Number(b.remaining ?? 0),
+      }));
+      populateProjects();
+      renderTradeRow();
+    }
+
+    async function loadDraws(showLoading=false) {
+      if (showLoading) $('statusTable').innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">Loading…</td></tr>`;
+      const data = await apiGet({ action: 'getDraws', pin: state.pin });
+      state.statusRows = data?.draws || [];
+      renderStatusTable();
+    }
+
+    function populateProjects() {
+      const select = $('projectSelect');
+      select.innerHTML = '<option value="" disabled selected>Select a project</option>';
+
+      const projects = [...new Set(state.budgets.map(b => b.project))].filter(Boolean).sort();
+      projects.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p;
+        o.textContent = p;
+        select.appendChild(o);
+      });
+    }
+
+    function tradesForProject(project) {
+      return state.budgets
+        .filter(b => b.project === project)
+        .sort((a,b)=>a.trade.localeCompare(b.trade));
+    }
+
+    function renderTradeRow() {
+      const container = $('lineItems');
+      container.innerHTML = '';
+
+      const project = $('projectSelect').value;
+      const trades = project ? tradesForProject(project) : [];
+
+      const row = document.createElement('div');
+      row.className = 'grid md:grid-cols-12 gap-4 items-start bg-white rounded-xl border border-slate-100 p-4';
+
+      row.innerHTML = `
+        <div class="md:col-span-5 space-y-2">
+          <label class="text-xs font-medium text-slate-600">Trade</label>
+          <select id="tradeSelect" class="w-full rounded-lg border border-slate-200 px-3 py-2.5" ${project ? '' : 'disabled'} required>
+            <option value="" disabled selected>${project ? 'Select trade' : 'Select project first'}</option>
+            ${trades.map(t => `<option value="${escapeHtml(t.trade)}">${escapeHtml(t.trade)}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="md:col-span-3 space-y-1">
+          <p class="text-xs font-medium text-slate-600">Budget Available</p>
+          <p id="remainingLabel" class="text-lg font-semibold text-emerald-700">—</p>
+          <p id="remainingHint" class="text-xs text-slate-500"></p>
+        </div>
+
+        <div class="md:col-span-4 space-y-2">
+          <label class="text-xs font-medium text-slate-600">Amount</label>
+          <input id="amountInput" type="number" min="0" step="0.01" placeholder="0.00"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2.5" disabled />
+          <p id="amountWarning" class="text-xs text-rose-600 hidden"></p>
+        </div>
+      `;
+      container.appendChild(row);
+
+      const tradeSelect = $('tradeSelect');
+      const amountInput = $('amountInput');
+
+      tradeSelect.addEventListener('change', () => {
+        state.selectedTrade = tradeSelect.value;
+
+        const b = state.budgets.find(x =>
+          x.project === $('projectSelect').value && x.trade === state.selectedTrade
+        );
+
+        state.selectedRemaining = b ? b.remaining : null;
+
+        $('remainingLabel').textContent = b ? formatCurrency(b.remaining) : '—';
+        $('remainingHint').textContent = b ? `Original: ${formatCurrency(b.original)}` : '';
+
+        amountInput.disabled = !b;
+        amountInput.value = '';
+        state.selectedAmount = 0;
+
+        validateAmount();
+        updateSummary();
+      });
+
+      amountInput.addEventListener('input', () => {
+        state.selectedAmount = Number(amountInput.value || 0);
+        validateAmount();
+        updateSummary();
+      });
+
       updateSummary();
     }
+
+    function validateAmount() {
+      const warn = $('amountWarning');
+      const amountInput = $('amountInput');
+
+      warn.classList.add('hidden');
+      warn.textContent = '';
+      amountInput.classList.remove('border-rose-400','bg-rose-50');
+
+      if (!state.selectedTrade) return;
+
+      const max = Number(state.selectedRemaining ?? 0);
+      const v = Number(state.selectedAmount ?? 0);
+
+      if (v <= 0) {
+        warn.textContent = 'Enter an amount greater than 0.';
+        warn.classList.remove('hidden');
+        amountInput.classList.add('border-rose-400','bg-rose-50');
+        return;
+      }
+
+      if (Number.isFinite(max) && v > max) {
+        warn.textContent = 'Amount exceeds available budget.';
+        warn.classList.remove('hidden');
+        amountInput.classList.add('border-rose-400','bg-rose-50');
+        return;
+      }
+
+      $('totalAmount').textContent = formatCurrency(v);
+    }
+
+    function updateSummary() {
+      const project = $('projectSelect').value || '—';
+      const trade = state.selectedTrade || '—';
+      const total = formatCurrency(state.selectedAmount || 0);
+      const files = state.invoiceFiles.length ? `${state.invoiceFiles.length} file(s)` : 'None';
+
+      $('summaryList').innerHTML = `
+        <li>Project: ${escapeHtml(project)}</li>
+        <li>Trade: ${escapeHtml(trade)}</li>
+        <li>Total Amount: ${escapeHtml(total)}</li>
+        <li>Files: ${escapeHtml(files)}</li>
+      `;
+      $('totalAmount').textContent = total;
+    }
+
+    function updatePaymentEstimate(selectedDate) {
+      if (!selectedDate) {
+        state.lastEstimatedPayment = '';
+        $('estimatedPayment').textContent = 'Select a work date to calculate.';
+        return;
+      }
+      const pay = nextThursday(selectedDate);
+      const formatted = pay.toLocaleDateString('en-US', { month:'2-digit', day:'2-digit', year:'numeric' });
+
+      state.lastEstimatedPayment = formatted; // ✅ clean value for payload
+      $('estimatedPayment').textContent = `Estimated Payment Date: ${formatted}`;
+    }
+
+    function setupDatePicker() {
+      const today = new Date();
+      const minDate = addDays(today, 3);
+      $('bufferMessage').textContent = `Earliest work date available is ${minDate.toLocaleDateString('en-US')}.`;
+
+      flatpickr('#workDate', {
+        minDate,
+        dateFormat: 'm/d/Y',
+        disableMobile: true,
+        onChange: (dates) => updatePaymentEstimate(dates[0]),
+      });
+    }
+
+    function setupFileUpload() {
+      const dropzone = $('dropzone');
+      const fileInput = $('fileInput');
+      const fileInfo = $('fileInfo');
+      const fileError = $('fileError');
+
+      const setError = (msg) => {
+        if (!msg) { fileError.classList.add('hidden'); fileError.textContent=''; }
+        else { fileError.classList.remove('hidden'); fileError.textContent=msg; }
+      };
+
+      async function readBase64(file) {
+        return new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onerror = () => reject(new Error('read failed'));
+          r.onload = () => resolve(String(r.result).split(',')[1] || '');
+          r.readAsDataURL(file);
+        });
+      }
+
+      async function handleFiles(files) {
+        setError('');
+        const list = Array.from(files || []);
+        if (!list.length) return;
+        if (list.length > 5) { setError('Please upload up to 5 files.'); return; }
+
+        // ✅ cap total upload size (helps avoid Apps Script payload limit failures)
+        const totalBytes = list.reduce((sum, f) => sum + (f.size || 0), 0);
+        const MAX_BYTES = 18 * 1024 * 1024; // ~18MB safe-ish, base64 expands
+        if (totalBytes > MAX_BYTES) {
+          setError('Files are too large. Please upload fewer/smaller files (try under ~18MB total).');
+          return;
+        }
+
+        const out = [];
+        for (const f of list) {
+          out.push({ name: f.name, mimeType: f.type || 'application/octet-stream', base64: await readBase64(f) });
+        }
+        state.invoiceFiles = out;
+        fileInfo.textContent = out.map(x => x.name).join(', ');
+        updateSummary();
+      }
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+      dropzone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropzone.classList.add('border-slate-400'); });
+      dropzone.addEventListener('dragleave', ()=> dropzone.classList.remove('border-slate-400'));
+      dropzone.addEventListener('drop', (e)=>{ e.preventDefault(); dropzone.classList.remove('border-slate-400'); handleFiles(e.dataTransfer.files); });
+    }
+
+    function statusBadge(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'paid') return 'bg-emerald-50 text-emerald-700';
+      if (s === 'approved') return 'bg-blue-50 text-blue-700';
+      if (s === 'submitted') return 'bg-amber-50 text-amber-700';
+      if (s === 'canceled') return 'bg-slate-100 text-slate-700';
+      return 'bg-slate-100 text-slate-700';
+    }
+
+    function renderStatusTable() {
+      const term = ($('searchInput').value || '').toLowerCase();
+      const rows = state.statusRows.filter(r =>
+        [r.project, r.trade, r.status].some(v => String(v||'').toLowerCase().includes(term))
+      );
+
+      const tbody = $('statusTable');
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td class="py-6 text-slate-500" colspan="6">No results.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(r => {
+        const canCancel = String(r.status || '').toLowerCase() === 'submitted';
+        const updated = r.statusUpdatedAt || r.updatedAt || r.submittedAt || '';
+        const drawId = r.drawId || r.id || r.drawID || ''; // ✅ resilient
+
+        return `
+          <tr class="text-slate-800">
+            <td class="py-3 pr-4">${escapeHtml(r.project||'')}</td>
+            <td class="py-3 pr-4">${escapeHtml(r.trade||'')}</td>
+            <td class="py-3 pr-4">${escapeHtml(formatCurrency(r.amount||0))}</td>
+            <td class="py-3 pr-4">
+              <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadge(r.status)}">${escapeHtml(r.status||'')}</span>
+            </td>
+            <td class="py-3 pr-4 text-slate-500">${escapeHtml(updated)}</td>
+            <td class="py-3 pr-4 text-right">
+              ${canCancel && drawId ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-draw-id="${escapeHtml(drawId)}">✕</button>` : `<span class="text-slate-300">—</span>`}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.cancel-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.pendingCancelDrawId = btn.getAttribute('data-draw-id');
+          showModal('cancelModal');
+        });
+      });
+    }
+
+    async function submitDraw(e) {
+      e.preventDefault();
+      $('submitMessage').textContent = '';
+
+      const project = $('projectSelect').value;
+      const workDate = $('workDate').value;
+      const trade = state.selectedTrade;
+      const amount = Number(state.selectedAmount || 0);
+
+      if (!project || !workDate || !trade || amount <= 0) {
+        $('submitMessage').textContent = 'Fill project, work date, trade, and valid amount.';
+        return;
+      }
+      if (!state.invoiceFiles.length) {
+        $('submitMessage').textContent = 'Upload at least one file.';
+        return;
+      }
+
+      const max = Number(state.selectedRemaining ?? Infinity);
+      if (Number.isFinite(max) && amount > max) {
+        $('submitMessage').textContent = 'Amount exceeds available budget.';
+        return;
+      }
+
+      // ✅ require a computed payment date (reduces bad rows)
+      if (!state.lastEstimatedPayment) {
+        $('submitMessage').textContent = 'Please pick a valid work date (payment date must calculate).';
+        return;
+      }
+
+      $('submitBtn').disabled = true;
+      $('submitBtn').textContent = 'Submitting...';
+
+      try {
+        await apiPost({
+          action: 'submitDraw',
+          pin: state.pin,
+          Project: project,
+          WorkDate: workDate,
+          EstimatedPayment: state.lastEstimatedPayment,
+          LineItems: [{ trade, amount }],
+          files: state.invoiceFiles
+        });
+
+        $('successText').innerHTML = `Your draw request was submitted.<br/><span class="text-slate-500">You can submit another trade now.</span>`;
+        showModal('successModal');
+
+        // reset trade/amount/files ONLY (keep project/date)
+        state.selectedTrade = '';
+        state.selectedAmount = 0;
+        state.selectedRemaining = null;
+        state.invoiceFiles = [];
+        $('fileInfo').textContent = '';
+        $('fileInput').value = '';
+        renderTradeRow();
+        updateSummary();
+
+        await loadDraws(true);
+      } catch (err) {
+        console.error(err);
+        $('submitMessage').textContent = 'Submission failed. Please try again.';
+      } finally {
+        $('submitBtn').disabled = false;
+        $('submitBtn').textContent = 'Submit Draw Request';
+      }
+    }
+
+    function init() {
+      assertScriptUrl();
+      setupDatePicker();
+      setupFileUpload();
+
+      $('pinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = $('pinInput').value.trim();
+
+        if (!/^[0-9]{4}$/.test(pin)) {
+          $('pinError').textContent = 'Please enter a 4-digit PIN.';
+          $('pinError').classList.remove('hidden');
+          return;
+        }
+
+        $('pinError').classList.add('hidden');
+        $('pinSubmit').disabled = true;
+        $('pinSubmit').textContent = 'Verifying...';
+
+        try {
+          const c = await verifyPin(pin);
+
+          if (!c?.name) {
+            $('pinError').textContent = 'PIN not recognized.';
+            $('pinError').classList.remove('hidden');
+            return;
+          }
+
+          state.pin = pin;
+          state.contractor = c;
+          $('headerContractorName').textContent = c.name;
+
+          hideModal('pinModal');
+
+          // ✅ avoid race: budgets first (projects dropdown), then draws
+          await loadBudgets();
+          await loadDraws(true);
+        } catch (err) {
+          console.error(err);
+          $('pinError').textContent = 'Could not verify PIN. Please try again.';
+          $('pinError').classList.remove('hidden');
+        } finally {
+          $('pinSubmit').disabled = false;
+          $('pinSubmit').textContent = 'Continue';
+        }
+      });
+
+      $('projectSelect').addEventListener('change', () => {
+        state.selectedTrade = '';
+        state.selectedAmount = 0;
+        state.selectedRemaining = null;
+        renderTradeRow();
+        updateSummary();
+      });
+
+      $('drawForm').addEventListener('submit', submitDraw);
+
+      $('successOkBtn').addEventListener('click', () => hideModal('successModal'));
+
+      $('searchInput').addEventListener('input', renderStatusTable);
+      $('refreshStatusBtn').addEventListener('click', () => loadDraws(true));
+
+      $('cancelKeepBtn').addEventListener('click', () => {
+        state.pendingCancelDrawId = null;
+        hideModal('cancelModal');
+      });
+
+      $('cancelConfirmBtn').addEventListener('click', async () => {
+        const drawId = state.pendingCancelDrawId;
+        if (!drawId) return;
+
+        $('cancelConfirmBtn').disabled = true;
+        $('cancelConfirmBtn').textContent = 'Canceling...';
+
+        try {
+          hideModal('cancelModal');
+          await apiPost({ action: 'cancelDraw', pin: state.pin, drawId });
+          state.pendingCancelDrawId = null;
+          await loadDraws(true);
+        } catch (err) {
+          console.error(err);
+          // still refresh so UI isn't stuck
+          await loadDraws(true);
+        } finally {
+          $('cancelConfirmBtn').disabled = false;
+          $('cancelConfirmBtn').textContent = 'Cancel Draw';
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
