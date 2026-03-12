@@ -165,8 +165,10 @@
 
     function setupUI(contractor) {
       state.contractor = contractor;
-      const isSpanish = contractor.isSpanish;
-      const isLight = contractor.isLight;
+      
+      // Strict check for boolean values
+      const isSpanish = (contractor.isSpanish === true);
+      const isLight = (contractor.isLight === true);
       const lang = isSpanish ? 'es' : 'en';
 
       applyTranslations(lang);
@@ -175,16 +177,22 @@
         $('bodyTag').classList.add('light-mode-theme');
         $('fileInput').required = false;
       } else {
+        $('bodyTag').classList.remove('light-mode-theme'); // Explicitly remove to prevent stickiness
         $('fileInput').required = true;
       }
 
       const dateInput = $('workDate');
       let defaultDate = new Date();
-      if (!isLight) defaultDate.setDate(defaultDate.getDate() + 3);
+      
+      // Date Logic: Light = Today, Regular = Today + 3 days
+      if (!isLight) {
+        defaultDate.setDate(defaultDate.getDate() + 3);
+      }
       
       flatpickr(dateInput, {
         defaultDate: defaultDate,
-        dateFormat: 'm/d/Y'
+        dateFormat: 'm/d/Y',
+        minDate: isLight ? "today" : new Date().fp_incr(3)
       });
 
       $('headerContractorName').textContent = contractor.name;
@@ -192,34 +200,43 @@
       loadBudgets();
       loadDraws();
     }
-async function loadBudgets() {
-  const r = await fetch(`${SCRIPT_URL}?action=getBudgets&pin=${state.pin}`);
-  const d = await r.json();
-  state.budgets = d.budgets || [];
-  
-  const ps = document.getElementById('projectSelect');
-  ps.innerHTML = '<option value="" disabled selected>Select Project</option>';
-  
-  // Use the projects assigned to this contractor specifically
-  state.contractor.projects.forEach(p => {
-    ps.add(new Option(p, p));
-  });
 
-  ps.onchange = () => {
-    const ts = document.getElementById('tradeSelect');
-    ts.innerHTML = '<option value="" disabled selected>Select Trade</option>';
-    
-    // Filter budgets to only show trades for the selected project
-    const trades = state.budgets.filter(b => b.project === ps.value);
-    trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
-    
-    // Light version logic: Auto-select first trade
-    if (state.contractor.isLight && trades.length > 0) {
-       ts.selectedIndex = 1; 
-       ts.dispatchEvent(new Event('change'));
+    async function loadBudgets() {
+      const r = await fetch(`${SCRIPT_URL}?action=getBudgets&pin=${state.pin}`);
+      const d = await r.json();
+      state.budgets = d.budgets || [];
+      
+      const ps = $('projectSelect');
+      ps.innerHTML = '<option value="" disabled selected>Select Project</option>';
+      
+      state.contractor.projects.forEach(p => ps.add(new Option(p, p)));
+
+      ps.onchange = () => {
+        const ts = $('tradeSelect');
+        ts.innerHTML = '';
+        
+        const trades = state.budgets.filter(b => b.project === ps.value);
+        trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
+        
+        // Auto-select and update label immediately for Light Mode
+        if (state.contractor.isLight && trades.length > 0) {
+           ts.selectedIndex = 0;
+           $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
+        } else {
+           // Standard version: Add placeholder
+           const placeholder = new Option("Select Trade", "");
+           placeholder.disabled = true;
+           placeholder.selected = true;
+           ts.add(placeholder, ts.options[0]);
+           $('remainingLabel').textContent = '—';
+        }
+      };
+
+      $('tradeSelect').onchange = (e) => {
+        const b = state.budgets.find(x => x.project === ps.value && x.trade === e.target.value);
+        $('remainingLabel').textContent = b ? `$${b.remaining.toLocaleString()}` : '—';
+      };
     }
-  };
-}
 
     async function loadDraws() {
       const r = await fetch(`${SCRIPT_URL}?action=getDraws&pin=${state.pin}`);
