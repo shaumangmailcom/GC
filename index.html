@@ -41,14 +41,11 @@
   </div>
 
   <div id="successModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
-      <p class="text-xs uppercase tracking-[0.2em] text-emerald-600">Success</p>
+    <div class="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl text-center">
       <h2 data-t="successTitle" class="text-2xl font-semibold text-slate-900 mt-2">Request Submitted</h2>
       <p id="successText" class="text-sm text-slate-600 mt-2">Your draw request was submitted.</p>
-      <div class="mt-6 flex justify-end">
-        <button id="successOkBtn" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">
-          OK
-        </button>
+      <div class="mt-6 flex justify-center">
+        <button id="successOkBtn" class="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">OK</button>
       </div>
     </div>
   </div>
@@ -59,12 +56,8 @@
       <h2 class="text-2xl font-semibold text-slate-900 mt-2">Cancel this draw?</h2>
       <p class="text-sm text-slate-600 mt-2">This will mark it as <b>Canceled</b>.</p>
       <div class="mt-6 flex justify-end gap-3">
-        <button id="cancelKeepBtn" class="bg-white border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition">
-          Keep
-        </button>
-        <button id="cancelConfirmBtn" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">
-          Cancel Draw
-        </button>
+        <button id="cancelKeepBtn" class="bg-white border border-slate-200 text-slate-900 px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition">Keep</button>
+        <button id="cancelConfirmBtn" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-slate-800 transition">Cancel Draw</button>
       </div>
     </div>
   </div>
@@ -114,7 +107,7 @@
           </div>
         </section>
 
-        <section class="grid md:grid-cols-2 gap-6">
+        <section class="grid md:grid-cols-2 gap-6 pt-4">
           <div class="space-y-2">
             <label data-t="tUpload" id="lblUpload" class="block text-sm font-medium text-slate-700">Upload files (up to 5)</label>
             <div id="dropzone" class="border-2 border-dashed border-slate-200 rounded-xl px-4 py-8 text-center bg-slate-50 cursor-pointer">
@@ -126,20 +119,25 @@
             <p id="fileError" class="text-xs text-rose-600 hidden"></p>
           </div>
 
-          <div class="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <h3 data-t="tSummary" class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
-            <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
-              <li>Project: —</li>
-              <li>Trade: —</li>
-              <li>Total Amount: $0.00</li>
-              <li>Files: None</li>
-            </ul>
+          <div class="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between transition-all" id="summaryContainer">
+            
+            <div id="summaryDetails">
+              <h3 data-t="tSummary" class="text-sm uppercase tracking-[0.2em] text-slate-500">Submission Summary</h3>
+              <ul class="space-y-2 text-sm text-slate-700" id="summaryList">
+                <li>Project: —</li>
+                <li>Trade: —</li>
+                <li>Total Amount: $0.00</li>
+                <li>Files: None</li>
+              </ul>
+            </div>
 
-            <button id="submitBtn" type="submit" class="w-full bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold hover:bg-slate-800 transition disabled:opacity-60">
-              <span data-t="submitBtn">Submit Draw Request</span>
-            </button>
+            <div class="mt-2" id="submitBtnWrapper">
+              <button id="submitBtn" type="submit" class="w-full bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold hover:bg-slate-800 transition disabled:opacity-60">
+                <span data-t="submitBtn">Submit Draw Request</span>
+              </button>
+              <p id="submitMessage" class="text-xs text-rose-600 mt-2 text-center"></p>
+            </div>
 
-            <p id="submitMessage" class="text-xs text-rose-600"></p>
           </div>
         </section>
       </form>
@@ -220,7 +218,6 @@
         const key = el.getAttribute('data-t');
         if (dict[key]) el.textContent = dict[key];
       });
-      // Special logic for the Upload label if Light mode is active
       const isLight = state.contractor && state.contractor.isLight;
       if (isLight) $('lblUpload').textContent = dict.tUploadOpt;
     }
@@ -294,7 +291,6 @@
       return state.budgets.filter(b => b.project === project).sort((a,b)=>a.trade.localeCompare(b.trade));
     }
 
-    // ORIGINAL RENDER ROW FUNCTION - RESTORED
     function renderTradeRow() {
       const container = $('lineItems');
       container.innerHTML = '';
@@ -351,7 +347,6 @@
         updateSummary();
       });
 
-      // LIGHT MODE AUTO-SELECT INJECTION
       if (state.contractor && state.contractor.isLight && project && trades.length > 0) {
          tradeSelect.value = trades[0].trade;
          tradeSelect.dispatchEvent(new Event('change'));
@@ -423,14 +418,22 @@
       
       $('bufferMessage').textContent = msg;
 
+      // AUTO-INSERT THE DATE IN THE TEXT BOX IMMEDIATELY
+      const formattedDefault = minDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+      $('workDate').value = formattedDefault;
+
       if (window.fpInstance) window.fpInstance.destroy();
 
       window.fpInstance = flatpickr('#workDate', {
-        minDate,
+        defaultDate: minDate,
         dateFormat: 'm/d/Y',
+        minDate: minDate,
         disableMobile: true,
         onChange: (dates) => updatePaymentEstimate(dates[0]),
       });
+
+      // TRIGGER PAYMENT CALCULATION INSTANTLY
+      updatePaymentEstimate(minDate);
     }
 
     function setupFileUpload() {
@@ -515,7 +518,7 @@
             <td class="py-3 pr-4">
               <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold ${statusBadge(r.status)}">${escapeHtml(r.status||'')}</span>
             </td>
-            <td class="py-3 pr-4 text-slate-500">${escapeHtml(updated)}</td>
+            <td class="py-3 pr-4 text-slate-500">${escapeHtml(updated.split(' ')[0])}</td>
             <td class="py-3 pr-4 text-right">
               ${canCancel && drawId ? `<button class="cancel-btn text-slate-500 hover:text-rose-600 font-semibold" data-draw-id="${escapeHtml(drawId)}">✕</button>` : `<span class="text-slate-300">—</span>`}
             </td>
@@ -616,8 +619,22 @@
           $('headerContractorName').textContent = c.name;
 
           const isLight = c.isLight === true;
-          if (isLight) document.body.classList.add('light-mode-theme');
-          else document.body.classList.remove('light-mode-theme');
+          
+          if (isLight) {
+             $('bodyTag').classList.add('light-mode-theme');
+             $('fileInput').required = false;
+             
+             // CLEAN UP UI FOR LIGHT MODE
+             $('summaryDetails').classList.add('hidden');
+             $('summaryContainer').classList.remove('p-4', 'bg-slate-50', 'border', 'border-slate-100');
+          } else {
+             $('bodyTag').classList.remove('light-mode-theme');
+             $('fileInput').required = true;
+             
+             // RESTORE UI FOR REGULAR MODE
+             $('summaryDetails').classList.remove('hidden');
+             $('summaryContainer').classList.add('p-4', 'bg-slate-50', 'border', 'border-slate-100');
+          }
 
           applyTranslations();
           setupDatePicker(isLight);
