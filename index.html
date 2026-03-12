@@ -127,7 +127,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // ENSURE THIS IS YOUR LATEST LINK
+    // ENSURE THIS IS YOUR LATEST LINK (I kept the one you provided)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK9YXqrKC2g0q-8-PsutLjoBjWBN3DwFOUaMoP9yUKFFuu2Tkww3Uy7O_CyYh90auO7g/exec';
 
     const translations = {
@@ -185,7 +185,6 @@
 
       const dateInput = $('workDate');
       let defaultDate = new Date();
-      
       if (!isLight) {
         defaultDate.setDate(defaultDate.getDate() + 3);
       }
@@ -211,7 +210,7 @@
       const lang = state.contractor.isSpanish ? 'es' : 'en';
       ps.innerHTML = `<option value="" disabled selected>${translations[lang].selectProjectPlaceholder}</option>`;
       
-      // Pull unique projects directly from loaded budgets to guarantee a match
+      // Load unique projects from budgets (the way that worked perfectly before)
       const uniqueProjects = [...new Set(state.budgets.map(b => b.project))];
       uniqueProjects.forEach(p => ps.add(new Option(p, p)));
 
@@ -220,22 +219,22 @@
         ts.innerHTML = '';
         
         const trades = state.budgets.filter(b => b.project === ps.value);
-        
-        if (trades.length === 0) {
-           ts.add(new Option("No trades found", ""));
-           $('remainingLabel').textContent = '—';
-           return;
-        }
+        if (trades.length === 0) return;
 
         if (state.contractor.isLight) {
+           // 1. Actually add the trades to the dropdown FIRST
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
-           ts.value = trades[0].trade; // Explicitly set the value!
+           // 2. Select the first trade
+           ts.selectedIndex = 0;
+           // 3. Update the budget label
            $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
         } else {
+           // 1. Add the placeholder safely
            const placeholder = new Option(translations[lang].selectTradePlaceholder, "");
            placeholder.disabled = true;
            placeholder.selected = true;
            ts.add(placeholder);
+           // 2. Add the actual trades SECOND
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
            $('remainingLabel').textContent = '—';
         }
