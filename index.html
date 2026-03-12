@@ -192,35 +192,34 @@
       loadBudgets();
       loadDraws();
     }
+async function loadBudgets() {
+  const r = await fetch(`${SCRIPT_URL}?action=getBudgets&pin=${state.pin}`);
+  const d = await r.json();
+  state.budgets = d.budgets || [];
+  
+  const ps = document.getElementById('projectSelect');
+  ps.innerHTML = '<option value="" disabled selected>Select Project</option>';
+  
+  // Use the projects assigned to this contractor specifically
+  state.contractor.projects.forEach(p => {
+    ps.add(new Option(p, p));
+  });
 
-    async function loadBudgets() {
-      const r = await fetch(`${SCRIPT_URL}?action=getBudgets&pin=${state.pin}`);
-      const d = await r.json();
-      state.budgets = d.budgets || [];
-      
-      const ps = $('projectSelect');
-      ps.innerHTML = '<option value="">Select Project</option>';
-      const uniqueProjects = [...new Set(state.budgets.map(b => b.project))];
-      uniqueProjects.forEach(p => ps.add(new Option(p, p)));
-
-      ps.onchange = () => {
-        const trades = state.budgets.filter(b => b.project === ps.value);
-        const ts = $('tradeSelect');
-        ts.innerHTML = '';
-        trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
-        
-        // Light version: Auto-select highest row (first match)
-        if (state.contractor.isLight && trades.length > 0) {
-           ts.value = trades[0].trade;
-           $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
-        }
-      };
-      
-      $('tradeSelect').onchange = (e) => {
-        const b = state.budgets.find(x => x.project === ps.value && x.trade === e.target.value);
-        $('remainingLabel').textContent = b ? `$${b.remaining.toLocaleString()}` : '—';
-      };
+  ps.onchange = () => {
+    const ts = document.getElementById('tradeSelect');
+    ts.innerHTML = '<option value="" disabled selected>Select Trade</option>';
+    
+    // Filter budgets to only show trades for the selected project
+    const trades = state.budgets.filter(b => b.project === ps.value);
+    trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
+    
+    // Light version logic: Auto-select first trade
+    if (state.contractor.isLight && trades.length > 0) {
+       ts.selectedIndex = 1; 
+       ts.dispatchEvent(new Event('change'));
     }
+  };
+}
 
     async function loadDraws() {
       const r = await fetch(`${SCRIPT_URL}?action=getDraws&pin=${state.pin}`);
