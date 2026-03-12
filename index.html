@@ -127,7 +127,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // NEW LINK GOES HERE
+    // MAKE SURE THIS IS YOUR LATEST LINK
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK9YXqrKC2g0q-8-PsutLjoBjWBN3DwFOUaMoP9yUKFFuu2Tkww3Uy7O_CyYh90auO7g/exec';
 
     const translations = {
@@ -173,6 +173,16 @@
       const isLight = (contractor.isLight === true);
       const lang = isSpanish ? 'es' : 'en';
 
+      // ==========================================
+      // DIAGNOSTIC ALERT - WE WILL REMOVE THIS LATER
+      // ==========================================
+      alert(
+        "DIAGNOSTIC DATA FROM GOOGLE SHEETS:\n\n" +
+        "Contractor Name: " + contractor.name + "\n" +
+        "Spanish Column: " + isSpanish + "\n" +
+        "Light Column: " + isLight
+      );
+
       applyTranslations(lang);
 
       if (isLight) {
@@ -213,6 +223,7 @@
       
       state.contractor.projects.forEach(p => ps.add(new Option(p, p)));
 
+      // FIX FOR THE TRADE BUG IN LIGHT VERSION
       ps.onchange = () => {
         const ts = $('tradeSelect');
         ts.innerHTML = '';
@@ -220,21 +231,25 @@
         const trades = state.budgets.filter(b => b.project === ps.value);
         
         if (state.contractor.isLight && trades.length > 0) {
+           // Light version: Add trades and auto-select
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
            ts.selectedIndex = 0;
-           $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
         } else {
+           // Regular version: Add a blank placeholder first
            const placeholder = new Option(translations[lang].selectTradePlaceholder, "");
            placeholder.disabled = true;
            placeholder.selected = true;
            ts.add(placeholder);
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
-           $('remainingLabel').textContent = '—';
         }
+        
+        // Force the screen to update the available budget
+        ts.dispatchEvent(new Event('change'));
       };
 
       $('tradeSelect').onchange = (e) => {
-        const b = state.budgets.find(x => x.project === ps.value && x.trade === e.target.value);
+        const selectedTrade = e.target.value;
+        const b = state.budgets.find(x => x.project === ps.value && x.trade === selectedTrade);
         $('remainingLabel').textContent = b ? `$${b.remaining.toLocaleString()}` : '—';
       };
     }
