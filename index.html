@@ -135,14 +135,16 @@
         portalHeader: "Contractor Draw Portal", labelProject: "Project", labelDate: "Date of Work", labelTradeAmount: "Trade & Amount",
         subTrade: "Trade", subBudget: "Available", subAmount: "Amount", labelUpload: "Upload Files", dropText: "Drag & drop PDF/images",
         submitBtn: "Submit Draw Request", successTitle: "Request Submitted", historyTitle: "Payment History", thProject: "Project",
-        thTrade: "Trade", thAmount: "Amount", thStatus: "Status"
+        thTrade: "Trade", thAmount: "Amount", thStatus: "Status",
+        selectProjectPlaceholder: "Select Project", selectTradePlaceholder: "Select Trade"
       },
       es: {
         secureAccess: "Acceso Seguro", enterPin: "Ingrese el PIN", pinInstruction: "Use su PIN de 4 dígitos.", pinLabel: "PIN de 4 dígitos",
         portalHeader: "Portal de Pagos para Contratistas", labelProject: "Proyecto", labelDate: "Fecha de Trabajo", labelTradeAmount: "Oficio y Monto",
         subTrade: "Oficio", subBudget: "Disponible", subAmount: "Monto", labelUpload: "Subir Archivos", dropText: "Arrastre archivos PDF o imágenes aquí",
         submitBtn: "Enviar Solicitud de Pago", successTitle: "Solicitud Enviada", historyTitle: "Historial de Pagos", thProject: "Proyecto",
-        thTrade: "Oficio", thAmount: "Monto", thStatus: "Estado"
+        thTrade: "Oficio", thAmount: "Monto", thStatus: "Estado",
+        selectProjectPlaceholder: "Seleccionar Proyecto", selectTradePlaceholder: "Seleccionar Oficio"
       }
     };
 
@@ -166,7 +168,6 @@
     function setupUI(contractor) {
       state.contractor = contractor;
       
-      // Strict check for boolean values
       const isSpanish = (contractor.isSpanish === true);
       const isLight = (contractor.isLight === true);
       const lang = isSpanish ? 'es' : 'en';
@@ -177,14 +178,13 @@
         $('bodyTag').classList.add('light-mode-theme');
         $('fileInput').required = false;
       } else {
-        $('bodyTag').classList.remove('light-mode-theme'); // Explicitly remove to prevent stickiness
+        $('bodyTag').classList.remove('light-mode-theme');
         $('fileInput').required = true;
       }
 
       const dateInput = $('workDate');
       let defaultDate = new Date();
       
-      // Date Logic: Light = Today, Regular = Today + 3 days
       if (!isLight) {
         defaultDate.setDate(defaultDate.getDate() + 3);
       }
@@ -207,7 +207,8 @@
       state.budgets = d.budgets || [];
       
       const ps = $('projectSelect');
-      ps.innerHTML = '<option value="" disabled selected>Select Project</option>';
+      const lang = state.contractor.isSpanish ? 'es' : 'en';
+      ps.innerHTML = `<option value="" disabled selected>${translations[lang].selectProjectPlaceholder}</option>`;
       
       state.contractor.projects.forEach(p => ps.add(new Option(p, p)));
 
@@ -216,18 +217,17 @@
         ts.innerHTML = '';
         
         const trades = state.budgets.filter(b => b.project === ps.value);
-        trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
         
-        // Auto-select and update label immediately for Light Mode
         if (state.contractor.isLight && trades.length > 0) {
+           trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
            ts.selectedIndex = 0;
            $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
         } else {
-           // Standard version: Add placeholder
-           const placeholder = new Option("Select Trade", "");
+           const placeholder = new Option(translations[lang].selectTradePlaceholder, "");
            placeholder.disabled = true;
            placeholder.selected = true;
-           ts.add(placeholder, ts.options[0]);
+           ts.add(placeholder);
+           trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
            $('remainingLabel').textContent = '—';
         }
       };
