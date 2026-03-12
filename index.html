@@ -127,7 +127,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    // ENSURE THIS IS YOUR LATEST LINK (I kept the one you provided)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK9YXqrKC2g0q-8-PsutLjoBjWBN3DwFOUaMoP9yUKFFuu2Tkww3Uy7O_CyYh90auO7g/exec';
 
     const translations = {
@@ -210,38 +209,42 @@
       const lang = state.contractor.isSpanish ? 'es' : 'en';
       ps.innerHTML = `<option value="" disabled selected>${translations[lang].selectProjectPlaceholder}</option>`;
       
-      // Load unique projects from budgets (the way that worked perfectly before)
-      const uniqueProjects = [...new Set(state.budgets.map(b => b.project))];
-      uniqueProjects.forEach(p => ps.add(new Option(p, p)));
+      // Use the exact array of projects assigned to this contractor
+      state.contractor.projects.forEach(p => ps.add(new Option(p, p)));
 
       ps.onchange = () => {
         const ts = $('tradeSelect');
         ts.innerHTML = '';
         
-        const trades = state.budgets.filter(b => b.project === ps.value);
-        if (trades.length === 0) return;
+        // Exact match based on the selection
+        const selectedProject = ps.value.trim();
+        const trades = state.budgets.filter(b => b.project.trim() === selectedProject);
+        
+        if (trades.length === 0) {
+           ts.add(new Option("No trades mapped", ""));
+           $('remainingLabel').textContent = '—';
+           return;
+        }
 
         if (state.contractor.isLight) {
-           // 1. Actually add the trades to the dropdown FIRST
+           // Light version: Populate list and auto-select the first item
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
-           // 2. Select the first trade
            ts.selectedIndex = 0;
-           // 3. Update the budget label
            $('remainingLabel').textContent = `$${trades[0].remaining.toLocaleString()}`;
         } else {
-           // 1. Add the placeholder safely
+           // Regular version: Populate list with a "Select" placeholder at the top
            const placeholder = new Option(translations[lang].selectTradePlaceholder, "");
            placeholder.disabled = true;
            placeholder.selected = true;
            ts.add(placeholder);
-           // 2. Add the actual trades SECOND
            trades.forEach(t => ts.add(new Option(t.trade, t.trade)));
            $('remainingLabel').textContent = '—';
         }
       };
 
       $('tradeSelect').onchange = (e) => {
-        const b = state.budgets.find(x => x.project === ps.value && x.trade === e.target.value);
+        const selectedProject = ps.value.trim();
+        const b = state.budgets.find(x => x.project.trim() === selectedProject && x.trade === e.target.value);
         $('remainingLabel').textContent = b ? `$${b.remaining.toLocaleString()}` : '—';
       };
     }
